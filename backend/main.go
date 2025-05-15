@@ -53,7 +53,7 @@ func main() {
 	mux.Handle("POST /api/", http.HandlerFunc(revoke))                           //Revoke refresh token
 	mux.Handle("PUT /api/", http.HandlerFunc(update))                            //Update user details
 	mux.Handle("DELETE /api/", http.HandlerFunc(deleteNote))                     //Delete note based on id
-	mux.Handle("POST /api/payment_platform/webhooks", http.HandlerFunc(payment)) //
+	mux.Handle("POST /api/payment_platform/webhooks", http.HandlerFunc(payment)) //Payment platform webhook
 
 	server := &http.Server{Handler: mux, Addr: ":8080"}
 	fmt.Println("Listening on http://localhost:8080/")
