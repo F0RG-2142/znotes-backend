@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Note-Taking Platform</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Collaborative Note-Taking Platform</h1>
+        <div class="tabs">
+            <div class="tab active" data-section="personal">Personal Notes</div>
+            <div class="tab" data-section="groups">Group Notes</div>
+            <div class="tab" data-section="stats">Stats</div>
+        </div>
+
+        <!-- Personal Notes Section -->
+        <div class="section active" id="personal">
+            <h2>Personal Notes</h2>
+            <div class="note-editor">
+                <input type="text" id="personal-title" placeholder="Note Title">
+                <textarea id="personal-content" placeholder="Note Content" rows="5"></textarea>
+                <button onclick="createPersonalNote()">Create Note</button>
+            </div>
+            <div class="note-list" id="personal-notes"></div>
+        </div>
+
+        <!-- Group Notes Section -->
+        <div class="section" id="groups">
+            <h2>Group Notes</h2>
+            <div class="group-editor">
+                <input type="text" id="group-name" placeholder="Group Name">
+                <button onclick="createGroup()">Create Group</button>
+            </div>
+            <div class="group-list" id="group-list"></div>
+            <div class="note-editor" id="group-note-editor" style="display: none;">
+                <h3 id="group-title"></h3>
+                <input type="text" id="group-note-title" placeholder="Note Title">
+                <textarea id="group-note-content" placeholder="Note Content" rows="5"></textarea>
+                <button onclick="createGroupNote()">Create Group Note</button>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="section" id="stats">
+            <h2>Usage Stats</h2>
+            <div class="stats" id="stats-content"></div>
+        </div>
+
+        <div class="error" id="error-message" style="display: none;"></div>
+    </div>
+    <script src="scripts.js"></script>
+</body>
+</html>
