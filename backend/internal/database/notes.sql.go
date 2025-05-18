@@ -21,7 +21,7 @@ func (q *Queries) DeleteNote(ctx context.Context, id uuid.UUID) error {
 }
 
 const getAllNotes = `-- name: GetAllNotes :many
-SELECT id, created_at, updated_at, body, user_id, group_id FROM notes ORDER BY created_at ASC
+SELECT id, created_at, updated_at, body, user_id FROM notes ORDER BY created_at ASC
 `
 
 func (q *Queries) GetAllNotes(ctx context.Context) ([]Note, error) {
@@ -39,7 +39,6 @@ func (q *Queries) GetAllNotes(ctx context.Context) ([]Note, error) {
 			&i.UpdatedAt,
 			&i.Body,
 			&i.UserID,
-			&i.GroupID,
 		); err != nil {
 			return nil, err
 		}
@@ -55,7 +54,7 @@ func (q *Queries) GetAllNotes(ctx context.Context) ([]Note, error) {
 }
 
 const getNoteByID = `-- name: GetNoteByID :one
-SELECT id, created_at, updated_at, body, user_id, group_id FROM notes WHERE id = $1
+SELECT id, created_at, updated_at, body, user_id FROM notes WHERE id = $1
 `
 
 func (q *Queries) GetNoteByID(ctx context.Context, id uuid.UUID) (Note, error) {
@@ -67,13 +66,12 @@ func (q *Queries) GetNoteByID(ctx context.Context, id uuid.UUID) (Note, error) {
 		&i.UpdatedAt,
 		&i.Body,
 		&i.UserID,
-		&i.GroupID,
 	)
 	return i, err
 }
 
 const getNotesByAuthor = `-- name: GetNotesByAuthor :many
-SELECT id, created_at, updated_at, body, user_id, group_id FROM notes WHERE user_id = $1 ORDER BY created_at ASC
+SELECT id, created_at, updated_at, body, user_id FROM notes WHERE user_id = $1 ORDER BY created_at ASC
 `
 
 func (q *Queries) GetNotesByAuthor(ctx context.Context, userID uuid.UUID) ([]Note, error) {
@@ -91,7 +89,6 @@ func (q *Queries) GetNotesByAuthor(ctx context.Context, userID uuid.UUID) ([]Not
 			&i.UpdatedAt,
 			&i.Body,
 			&i.UserID,
-			&i.GroupID,
 		); err != nil {
 			return nil, err
 		}
@@ -115,7 +112,7 @@ VALUES (
     $1,
     $2 
 )
-RETURNING id, created_at, updated_at, body, user_id, group_id
+RETURNING id, created_at, updated_at, body, user_id
 `
 
 type NewNoteParams struct {
@@ -132,7 +129,6 @@ func (q *Queries) NewNote(ctx context.Context, arg NewNoteParams) (Note, error) 
 		&i.UpdatedAt,
 		&i.Body,
 		&i.UserID,
-		&i.GroupID,
 	)
 	return i, err
 }

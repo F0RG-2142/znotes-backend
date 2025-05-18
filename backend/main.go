@@ -53,7 +53,7 @@ func main() {
 	mux.Handle("POST /api/v1/notes", http.HandlerFunc(notes))                 //Post Private Note //Done
 	mux.Handle("GET /api/v1/notes", http.HandlerFunc(getNotes))               //Get all private notes //Done
 	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(getNote))       //Get one private note //Done
-	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(updateNote))    //Update private note //---
+	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(updateNote))    //Update private note //Done
 	mux.Handle("DELETE /api/{userID}/{noteID}", http.HandlerFunc(deleteNote)) //Delete note based on id //Done
 	//Groups
 	mux.Handle("POST /api/v1/groups", http.HandlerFunc(newGroup))                                               //Create new group //---
