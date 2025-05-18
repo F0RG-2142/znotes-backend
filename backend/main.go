@@ -38,37 +38,37 @@ func main() {
 	mux := http.NewServeMux()
 	//Utility and admin
 	mux.Handle("/", http.FileServer(http.Dir("../app/")))
-	mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir("../app/")))) // Serve app landing page
-	mux.Handle("GET /api/v1/healthz", http.HandlerFunc(readiness))                       //Check if server is ready
-	mux.Handle("GET /api/v1/admin/metrics", http.HandlerFunc(metrics))                   //Server metrics endpoint
-	mux.Handle("POST /api/v1/payment/webhooks", http.HandlerFunc(payment))               //Payment platform webhook
+	mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir("../app/")))) // Serve app landing page //Done
+	mux.Handle("GET /api/v1/healthz", http.HandlerFunc(readiness))                       //Check if server is ready //Done
+	mux.Handle("GET /api/v1/admin/metrics", http.HandlerFunc(metrics))                   //Server metrics endpoint //---
+	mux.Handle("POST /api/v1/payment/webhooks", http.HandlerFunc(payment))               //Payment platform webhook //---
 	//Users and auth
-	mux.Handle("POST /api/v1/register", http.HandlerFunc(newUser))      //New User Registration
-	mux.Handle("POST /api/v1/login", http.HandlerFunc(login))           //Login to profile
-	mux.Handle("POST /api/v1/logout", http.HandlerFunc(revoke))         //Revoke refresh token
-	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(refresh)) //Refresh JWT
-	mux.Handle("GET /api/v1/user/me", http.HandlerFunc(refresh))        //Get current user login details
-	mux.Handle("PUT /api/v1/user/me", http.HandlerFunc(updateUser))     //Update user details
+	mux.Handle("POST /api/v1/register", http.HandlerFunc(newUser))      //New User Registration //Done
+	mux.Handle("POST /api/v1/login", http.HandlerFunc(login))           //Login to profile //Done
+	mux.Handle("POST /api/v1/logout", http.HandlerFunc(revoke))         //Revoke refresh token Done
+	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(refresh)) //Refresh JWT //Done
+	mux.Handle("GET /api/v1/user/me", http.HandlerFunc(refresh))        //Get current user login details //Done
+	mux.Handle("PUT /api/v1/user/me", http.HandlerFunc(updateUser))     //Update user details //Done
 	//Private Notes
-	mux.Handle("POST /api/v1/notes", http.HandlerFunc(notes))                 //Post Private Note
-	mux.Handle("GET /api/v1/notes", http.HandlerFunc(getNotes))               //Get all private notes
-	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(getNote))       //Get one private note
-	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(updateNote))    //Update private note
-	mux.Handle("DELETE /api/{userID}/{noteID}", http.HandlerFunc(deleteNote)) //Delete note based on id
+	mux.Handle("POST /api/v1/notes", http.HandlerFunc(notes))                 //Post Private Note //Done
+	mux.Handle("GET /api/v1/notes", http.HandlerFunc(getNotes))               //Get all private notes //Done
+	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(getNote))       //Get one private note //Done
+	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(updateNote))    //Update private note //---
+	mux.Handle("DELETE /api/{userID}/{noteID}", http.HandlerFunc(deleteNote)) //Delete note based on id //Done
 	//Groups
-	mux.Handle("POST /api/v1/groups", http.HandlerFunc(newGroup))                                               //Create new group
-	mux.Handle("GET /api/v1/groups", http.HandlerFunc(groups))                                                  //List all groups a user is part of
-	mux.Handle("GET /api/v1/groups/{groupID}", http.HandlerFunc(group))                                         //Get specific group details
-	mux.Handle("DELETE /api/v1/groups/{groupID}", http.HandlerFunc(deleteGroup))                                //Delete group
-	mux.Handle("POST /api/v1/groups/{groupID}/members", http.HandlerFunc(addUserToGroup))                       //Add new user to group
-	mux.Handle("DELETE /api/v1/groups/{groupID}/members/{memberUserID}", http.HandlerFunc(removeUserFromGroup)) //Remove user from group
-	mux.Handle("GET /api/v1/groups/{groupID}/members", http.HandlerFunc(getGroupMembers))                       //Get all users in group
+	mux.Handle("POST /api/v1/groups", http.HandlerFunc(newGroup))                                               //Create new group //---
+	mux.Handle("GET /api/v1/groups", http.HandlerFunc(groups))                                                  //List all groups a user is part of //---
+	mux.Handle("GET /api/v1/groups/{groupID}", http.HandlerFunc(group))                                         //Get specific group details //---
+	mux.Handle("DELETE /api/v1/groups/{groupID}", http.HandlerFunc(deleteGroup))                                //Delete group //---
+	mux.Handle("POST /api/v1/groups/{groupID}/members", http.HandlerFunc(addUserToGroup))                       //Add new user to group //---
+	mux.Handle("DELETE /api/v1/groups/{groupID}/members/{memberUserID}", http.HandlerFunc(removeUserFromGroup)) //Remove user from group //---
+	mux.Handle("GET /api/v1/groups/{groupID}/members", http.HandlerFunc(getGroupMembers))                       //Get all users in group //---
 	//Group Notes
-	mux.Handle("POST /api/v1/groups/{groupID}/notes", http.HandlerFunc(groupNotes))                 //Post Group Note
-	mux.Handle("GET /api/v1/groups/{groupID}/notes", http.HandlerFunc(getGroupNotes))               //Get all group notes
-	mux.Handle("GET /api/v1/groups/{groupID}/notes/{noteID}", http.HandlerFunc(getGroupNote))       //Get one group note
-	mux.Handle("PUT /api/v1/groups/{groupID}/notes/{noteID}", http.HandlerFunc(updateGroupNote))    //Update Group Note
-	mux.Handle("DELETE /api/v1/groups/{groupID}/notes/{noteID}", http.HandlerFunc(deleteGroupNote)) //Delete group note based on id
+	mux.Handle("POST /api/v1/groups/{groupID}/notes", http.HandlerFunc(groupNotes))                 //Post Group Note //---
+	mux.Handle("GET /api/v1/groups/{groupID}/notes", http.HandlerFunc(getGroupNotes))               //Get all group notes //---
+	mux.Handle("GET /api/v1/groups/{groupID}/notes/{noteID}", http.HandlerFunc(getGroupNote))       //Get one group note //---
+	mux.Handle("PUT /api/v1/groups/{groupID}/notes/{noteID}", http.HandlerFunc(updateGroupNote))    //Update Group Note //---
+	mux.Handle("DELETE /api/v1/groups/{groupID}/notes/{noteID}", http.HandlerFunc(deleteGroupNote)) //Delete group note based on id //---
 
 	server := &http.Server{Handler: mux, Addr: ":8080"}
 	fmt.Println("Listening on http://localhost:8080/")

@@ -81,7 +81,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 const givePremium = `-- name: GivePremium :exec
 UPDATE users
 SET 
-    has_yappy_premium = 'true'
+    has_notes_premium = 'true'
 WHERE
     id = $1
 `

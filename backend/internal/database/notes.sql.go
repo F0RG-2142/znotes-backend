@@ -136,3 +136,22 @@ func (q *Queries) NewNote(ctx context.Context, arg NewNoteParams) (Note, error) 
 	)
 	return i, err
 }
+
+const updateNote = `-- name: UpdateNote :exec
+UPDATE notes
+SET 
+    updated_at = NOW(),
+    body = $1
+WHERE 
+    id = $2
+`
+
+type UpdateNoteParams struct {
+	Body string
+	ID   uuid.UUID
+}
+
+func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
+	_, err := q.db.ExecContext(ctx, updateNote, arg.Body, arg.ID)
+	return err
+}

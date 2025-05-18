@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/F0RG-2142/capstone-1/backend/internal/auth"
@@ -13,11 +12,9 @@ import (
 )
 
 func updateNote(w http.ResponseWriter, r *http.Request) {
-	//Do it
-}
-
-func deleteNote(w http.ResponseWriter, r *http.Request) {
+	//loads note from db, replaces old body with new one. Way to optimise?
 	w.Header().Set("Content-Type", "application/json")
+	//Get auth get & validate token ->
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
@@ -28,21 +25,76 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
 		return
 	}
-	id, err := uuid.Parse(r.URL.Query().Get("yapId"))
+	id, err := uuid.Parse(r.URL.Query().Get("noteId")) //loads entire note struct from db
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	yap, err := Cfg.db.GetNoteByID(r.Context(), id)
+	note, err := Cfg.db.GetNoteByID(r.Context(), id)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusNotFound)
 		return
 	}
-	if yap.UserID != user_id {
-		http.Error(w, "This is not your yap", http.StatusForbidden)
+	if note.UserID != user_id {
+		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 		return
 	}
-	err = Cfg.db.DeleteNote(r.Context(), yap.ID)
+	//decode req after auth
+	req := struct {
+		NoteID uuid.UUID `json:"noteId"`
+		Body   string    `json:"body"`
+	}{
+		NoteID: note.ID,
+		Body:   "",
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("Error decoding request: %v", err)
+		w.WriteHeader(500)
+		return
+	}
+	defer r.Body.Close()
+
+	params := database.UpdateNoteParams{
+		ID:   req.NoteID,
+		Body: req.Body,
+	}
+	err = Cfg.db.UpdateNote(r.Context(), params)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func deleteNote(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	//get JWT
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	//validate token
+	user_id, err := auth.ValidateJWT(token, Cfg.secret)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
+		return
+	}
+	id, err := uuid.Parse(r.URL.Query().Get("noteId"))
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	note, err := Cfg.db.GetNoteByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusNotFound)
+		return
+	}
+	if note.UserID != user_id {
+		http.Error(w, `{"error":"unauthorized"}`, http.StatusForbidden)
+		return
+	}
+	err = Cfg.db.DeleteNote(r.Context(), note.ID)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
 		return
@@ -56,42 +108,42 @@ func getNote(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
 	}
-	yap, err := Cfg.db.GetNoteByID(r.Context(), uuid.UUID(id))
+	note, err := Cfg.db.GetNoteByID(r.Context(), uuid.UUID(id))
 	if err != nil {
 		w.WriteHeader(404)
 		w.Write([]byte(err.Error()))
 	}
-	yapJSON, err := json.Marshal(yap)
+	noteJSON, err := json.Marshal(note)
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(yapJSON)
+	w.Write(noteJSON)
 }
 
 func getNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var yaps []database.Note
+	var notes []database.Note
 	id, err := uuid.Parse(r.URL.Query().Get("authorId"))
 	if err != nil {
 		http.Error(w, "Could not parse uuid", http.StatusBadRequest)
 		return
 	}
 	if id != uuid.Nil {
-		yaps, err = Cfg.db.GetNotesByAuthor(r.Context(), id)
+		notes, err = Cfg.db.GetNotesByAuthor(r.Context(), id)
 		if err != nil {
 			w.WriteHeader(http.StatusBadGateway)
 			return
 		}
 	} else {
-		yaps, err = Cfg.db.GetAllNotes(r.Context())
+		notes, err = Cfg.db.GetAllNotes(r.Context())
 		if err != nil {
 			w.WriteHeader(http.StatusBadGateway)
 			return
 		}
 	}
 
-	yapsJSON, err := json.Marshal(yaps)
+	yapsJSON, err := json.Marshal(notes)
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
 	}
@@ -137,33 +189,12 @@ func notes(w http.ResponseWriter, r *http.Request) {
 	if user_id != req.UserId {
 		w.WriteHeader(http.StatusForbidden)
 	}
-
-	//If body too long (>140) return error
-	if len(req.Body) > 140 {
-		respBody := returnValues{
-			Err: "Chirp is too long",
-		}
-		data, err := json.Marshal(respBody)
-		if err != nil {
-			log.Printf("Error marshalling JSON: %s", err)
-			w.WriteHeader(500)
-			return
-		}
-		w.WriteHeader(400)
-		w.Write(data)
-		return
-	}
-	//Clean profanities 1.0
-	cleaned_body := req.Body
-	cleaned_body = strings.Replace(cleaned_body, "Lol", "****", -1)
-	cleaned_body = strings.Replace(cleaned_body, "fortnite", "****", -1)
-	cleaned_body = strings.Replace(cleaned_body, "damn", "****", -1)
-	//save chirp to db
+	//save note to db
 	params := database.NewNoteParams{
-		Body:   cleaned_body,
+		Body:   req.Body,
 		UserID: req.UserId,
 	}
-	chirp, err := Cfg.db.NewNote(r.Context(), params)
+	note, err := Cfg.db.NewNote(r.Context(), params)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		http.Error(w, `{"error":"Failed to create chirp"}`, http.StatusInternalServerError)
@@ -171,11 +202,11 @@ func notes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respBody := returnValues{
-		Id:        chirp.ID.String(),
-		CreatedAt: chirp.CreatedAt,
-		UpdatedAt: chirp.UpdatedAt,
-		Body:      chirp.Body,
-		UserId:    chirp.UserID.String(),
+		Id:        note.ID.String(),
+		CreatedAt: note.CreatedAt,
+		UpdatedAt: note.UpdatedAt,
+		Body:      note.Body,
+		UserId:    note.UserID.String(),
 		Valid:     true,
 	}
 	//marshal and send reponse on successful creation
