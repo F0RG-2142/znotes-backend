@@ -32,21 +32,21 @@ func (q *Queries) AddToTeam(ctx context.Context, arg AddToTeamParams) error {
 	return err
 }
 
-const deleteGroup = `-- name: DeleteGroup :exec
+const deleteTeam = `-- name: DeleteTeam :exec
 DELETE FROM teams WHERE id = $1
 `
 
-func (q *Queries) DeleteGroup(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteGroup, id)
+func (q *Queries) DeleteTeam(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteTeam, id)
 	return err
 }
 
-const getAllGroups = `-- name: GetAllGroups :many
+const getAllTeams = `-- name: GetAllTeams :many
 SELECT id, created_at, updated_at, team_name, created_by, is_private FROM teams ORDER BY created_at ASC
 `
 
-func (q *Queries) GetAllGroups(ctx context.Context) ([]Team, error) {
-	rows, err := q.db.QueryContext(ctx, getAllGroups)
+func (q *Queries) GetAllTeams(ctx context.Context) ([]Team, error) {
+	rows, err := q.db.QueryContext(ctx, getAllTeams)
 	if err != nil {
 		return nil, err
 	}
@@ -75,12 +75,12 @@ func (q *Queries) GetAllGroups(ctx context.Context) ([]Team, error) {
 	return items, nil
 }
 
-const getGroupById = `-- name: GetGroupById :one
+const getTeamById = `-- name: GetTeamById :one
 SELECT id, created_at, updated_at, team_name, created_by, is_private FROM teams WHERE id = $1
 `
 
-func (q *Queries) GetGroupById(ctx context.Context, id uuid.UUID) (Team, error) {
-	row := q.db.QueryRowContext(ctx, getGroupById, id)
+func (q *Queries) GetTeamById(ctx context.Context, id uuid.UUID) (Team, error) {
+	row := q.db.QueryRowContext(ctx, getTeamById, id)
 	var i Team
 	err := row.Scan(
 		&i.ID,
@@ -127,7 +127,7 @@ func (q *Queries) GetTeamMembers(ctx context.Context, id uuid.UUID) ([]Team, err
 	return items, nil
 }
 
-const newGroup = `-- name: NewGroup :exec
+const newTeam = `-- name: NewTeam :exec
 INSERT INTO teams (id, created_at, updated_at, team_name, created_by, is_private)
 VALUES(
     gen_random_uuid (),
@@ -139,14 +139,14 @@ VALUES(
 )
 `
 
-type NewGroupParams struct {
+type NewTeamParams struct {
 	TeamName  string
 	CreatedBy uuid.UUID
 	IsPrivate bool
 }
 
-func (q *Queries) NewGroup(ctx context.Context, arg NewGroupParams) error {
-	_, err := q.db.ExecContext(ctx, newGroup, arg.TeamName, arg.CreatedBy, arg.IsPrivate)
+func (q *Queries) NewTeam(ctx context.Context, arg NewTeamParams) error {
+	_, err := q.db.ExecContext(ctx, newTeam, arg.TeamName, arg.CreatedBy, arg.IsPrivate)
 	return err
 }
 

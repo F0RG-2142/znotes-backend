@@ -156,13 +156,7 @@ func newUser(w http.ResponseWriter, r *http.Request) {
 	//hash passw
 	hashedPass, err := auth.HashPassword(req.Password)
 	if err != nil {
-		http.Error(w, `{"error":"Faileed to hash password"}`, http.StatusFailedDependency)
-	}
-	//check if db is initialized
-	if Cfg.db == nil {
-		log.Println("Database not initialized")
-		http.Error(w, `{"error":"Internal server error"}`, http.StatusInternalServerError)
-		return
+		http.Error(w, `{"error":"Failed to hash password"}`, http.StatusFailedDependency)
 	}
 	//Create user and resepond with created user
 	params := database.CreateUserParams{

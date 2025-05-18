@@ -1,4 +1,4 @@
--- name: NewGroup :exec
+-- name: NewTeam :exec
 INSERT INTO teams (id, created_at, updated_at, team_name, created_by, is_private)
 VALUES(
     gen_random_uuid (),
@@ -9,13 +9,13 @@ VALUES(
     $3
 );
 
--- name: GetAllGroups :many
+-- name: GetAllTeams :many
 SELECT * FROM teams ORDER BY created_at ASC;
 
--- name: GetGroupById :one
+-- name: GetTeamById :one
 SELECT * FROM teams WHERE id = $1;
 
--- name: DeleteGroup :exec
+-- name: DeleteTeam :exec
 DELETE FROM teams WHERE id = $1;
 
 -- name: AddToTeam :exec
