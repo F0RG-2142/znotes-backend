@@ -17,7 +17,12 @@ type Note struct {
 	UpdatedAt time.Time
 	Body      string
 	UserID    uuid.UUID
-	GroupID   uuid.NullUUID
+}
+
+type NoteTeam struct {
+	NoteID   uuid.UUID
+	TeamID   uuid.UUID
+	SharedAt time.Time
 }
 
 type RefreshToken struct {
@@ -29,6 +34,15 @@ type RefreshToken struct {
 	RevokedAt sql.NullTime
 }
 
+type Team struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	TeamName  string
+	CreatedBy uuid.UUID
+	IsPrivate bool
+}
+
 type User struct {
 	ID              uuid.UUID
 	CreatedAt       time.Time
@@ -36,4 +50,11 @@ type User struct {
 	Email           string
 	HashedPassword  string
 	HasNotesPremium bool
+}
+
+type UserTeam struct {
+	UserID   uuid.UUID
+	TeamID   uuid.UUID
+	Role     string
+	JoinedAt time.Time
 }

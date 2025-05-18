@@ -30,6 +30,6 @@ WHERE
 -- name: GivePremium :exec
 UPDATE users
 SET 
-    has_yappy_premium = 'true'
+    has_notes_premium = 'true'
 WHERE
     id = $1;

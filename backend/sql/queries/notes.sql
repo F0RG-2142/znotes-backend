@@ -18,5 +18,13 @@ SELECT * FROM notes WHERE id = $1;
 -- name: DeleteNote :exec
 DELETE FROM notes WHERE id = $1;
 
+-- name: UpdateNote :exec
+UPDATE notes
+SET 
+    updated_at = NOW(),
+    body = $1
+WHERE 
+    id = $2;
+
 -- name: GetNotesByAuthor :many
 SELECT * FROM notes WHERE user_id = $1 ORDER BY created_at ASC;
