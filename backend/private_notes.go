@@ -104,7 +104,7 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 
 func getNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	id, err := uuid.Parse(r.URL.Query().Get("yapId"))
+	id, err := uuid.Parse(r.URL.Query().Get("noteID"))
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
 	}
@@ -135,14 +135,7 @@ func getNotes(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadGateway)
 			return
 		}
-	} else {
-		notes, err = Cfg.db.GetAllNotes(r.Context())
-		if err != nil {
-			w.WriteHeader(http.StatusBadGateway)
-			return
-		}
 	}
-
 	yapsJSON, err := json.Marshal(notes)
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)

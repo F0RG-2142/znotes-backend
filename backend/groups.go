@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/F0RG-2142/capstone-1/backend/internal/auth"
 	"github.com/F0RG-2142/capstone-1/backend/internal/database"
 	"github.com/google/uuid"
 )
@@ -42,9 +43,56 @@ func newTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 func team(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	var team database.Team
+	if err != nil {
+		http.Error(w, "Could not parse uuid", http.StatusBadRequest)
+		return
+	}
+	//add auth check to team call
+	if id != uuid.Nil {
+		team, err = Cfg.db.GetTeamById(r.Context(), id)
+		if err != nil {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
+	}
+	//check return value to see if it returns valid json as there is no json tag in database.Team
+	teamJSON, err := json.Marshal(team)
+	if err != nil {
+		w.WriteHeader(http.StatusFailedDependency)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(teamJSON)
 }
 
 func teams(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var teams []database.Team
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	userId, err := auth.ValidateJWT(token, Cfg.secret)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
+		return
+	}
+	teams, err = Cfg.db.GetAllTeams(r.Context(), userId)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
+		return
+	}
+	teamsJSON, err := json.Marshal(team)
+	if err != nil {
+		w.WriteHeader(http.StatusFailedDependency)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(teamsJSON)
 }
 
 func deleteTeam(w http.ResponseWriter, r *http.Request) {

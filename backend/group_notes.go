@@ -2,17 +2,17 @@ package main
 
 import "net/http"
 
-func groupNotes(w http.ResponseWriter, r *http.Request) {
+func teamNotes(w http.ResponseWriter, r *http.Request) {
 }
 
-func getGroupNotes(w http.ResponseWriter, r *http.Request) {
+func getTeamNotes(w http.ResponseWriter, r *http.Request) {
 }
 
-func getGroupNote(w http.ResponseWriter, r *http.Request) {
+func getTeamNote(w http.ResponseWriter, r *http.Request) {
 }
 
-func deleteGroupNote(w http.ResponseWriter, r *http.Request) {
+func deleteTeamNote(w http.ResponseWriter, r *http.Request) {
 }
 
-func updateGroupNote(w http.ResponseWriter, r *http.Request) {
+func updateTeamNote(w http.ResponseWriter, r *http.Request) {
 }

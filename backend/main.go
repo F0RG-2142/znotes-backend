@@ -55,20 +55,20 @@ func main() {
 	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(getNote))       //Get one private note //Done
 	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(updateNote))    //Update private note //Done
 	mux.Handle("DELETE /api/{userID}/{noteID}", http.HandlerFunc(deleteNote)) //Delete note based on id //Done
-	//Groups
-	mux.Handle("POST /api/v1/groups", http.HandlerFunc(newTeam))                                               //Create new group //---
-	mux.Handle("GET /api/v1/groups", http.HandlerFunc(teams))                                                  //List all groups a user is part of //---
-	mux.Handle("GET /api/v1/groups/{groupID}", http.HandlerFunc(team))                                         //Get specific group details //---
-	mux.Handle("DELETE /api/v1/groups/{groupID}", http.HandlerFunc(deleteTeam))                                //Delete group //---
-	mux.Handle("POST /api/v1/groups/{groupID}/members", http.HandlerFunc(addUserToTeam))                       //Add new user to group //---
-	mux.Handle("DELETE /api/v1/groups/{groupID}/members/{memberUserID}", http.HandlerFunc(removeUserFromTeam)) //Remove user from group //---
-	mux.Handle("GET /api/v1/groups/{groupID}/members", http.HandlerFunc(getTeamMembers))                       //Get all users in group //---
-	//Group Notes
-	mux.Handle("POST /api/v1/groups/{groupID}/notes", http.HandlerFunc(groupNotes))                 //Post Group Note //---
-	mux.Handle("GET /api/v1/groups/{groupID}/notes", http.HandlerFunc(getGroupNotes))               //Get all group notes //---
-	mux.Handle("GET /api/v1/groups/{groupID}/notes/{noteID}", http.HandlerFunc(getGroupNote))       //Get one group note //---
-	mux.Handle("PUT /api/v1/groups/{groupID}/notes/{noteID}", http.HandlerFunc(updateGroupNote))    //Update Group Note //---
-	mux.Handle("DELETE /api/v1/groups/{groupID}/notes/{noteID}", http.HandlerFunc(deleteGroupNote)) //Delete group note based on id //---
+	//Teams
+	mux.Handle("POST /api/v1/teams", http.HandlerFunc(newTeam))                                              //Create new team //Done
+	mux.Handle("GET /api/v1/teams", http.HandlerFunc(teams))                                                 //List all teams a user is part of //---
+	mux.Handle("GET /api/v1/teams/{teamID}", http.HandlerFunc(team))                                         //Get specific team details //WIP
+	mux.Handle("DELETE /api/v1/teams/{teamID}", http.HandlerFunc(deleteTeam))                                //Delete team //---
+	mux.Handle("POST /api/v1/teams/{teamID}/members", http.HandlerFunc(addUserToTeam))                       //Add new user to team //---
+	mux.Handle("DELETE /api/v1/teams/{teamID}/members/{memberUserID}", http.HandlerFunc(removeUserFromTeam)) //Remove user from team //---
+	mux.Handle("GET /api/v1/teams/{teamID}/members", http.HandlerFunc(getTeamMembers))                       //Get all users in team //---
+	//Team Notes
+	mux.Handle("POST /api/v1/teams/{teamID}/notes", http.HandlerFunc(teamNotes))                 //Post team Note //---
+	mux.Handle("GET /api/v1/teams/{teamID}/notes", http.HandlerFunc(getTeamNotes))               //Get all team notes //---
+	mux.Handle("GET /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(getTeamNote))       //Get one team note //---
+	mux.Handle("PUT /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(updateTeamNote))    //Update team Note //---
+	mux.Handle("DELETE /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(deleteTeamNote)) //Delete team note based on id //---
 
 	server := &http.Server{Handler: mux, Addr: ":8080"}
 	fmt.Println("Listening on http://localhost:8080/")

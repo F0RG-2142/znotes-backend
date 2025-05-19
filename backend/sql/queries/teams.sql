@@ -10,13 +10,24 @@ VALUES(
 );
 
 -- name: GetAllTeams :many
-SELECT * FROM teams ORDER BY created_at ASC;
+SELECT t.*
+FROM Teams t
+INNER JOIN User_Teams ut ON t.id = ut.team_id
+WHERE ut.user_id = $1;
 
 -- name: GetTeamById :one
-SELECT * FROM teams WHERE id = $1;
+SELECT t.*
+FROM Teams t
+INNER JOIN User_Teams ut ON t.id = ut.team_id
+WHERE ut.user_id = $1 AND ut.team_id = $2;
 
 -- name: DeleteTeam :exec
-DELETE FROM teams WHERE id = $1;
+DELETE FROM Teams t
+USING User_Teams ut
+WHERE t.id = ut.team_id
+AND ut.user_id = $1
+AND ut.role = 'admin'
+AND t.id = $2;
 
 -- name: AddToTeam :exec
 INSERT INTO user_teams (user_id, team_id, role, joined_at)

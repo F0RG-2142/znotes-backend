@@ -12,20 +12,25 @@ import (
 )
 
 const deleteNote = `-- name: DeleteNote :exec
-DELETE FROM notes WHERE id = $1
+DELETE FROM notes WHERE id = $1 AND user_id = $2
 `
 
-func (q *Queries) DeleteNote(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteNote, id)
+type DeleteNoteParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) DeleteNote(ctx context.Context, arg DeleteNoteParams) error {
+	_, err := q.db.ExecContext(ctx, deleteNote, arg.ID, arg.UserID)
 	return err
 }
 
 const getAllNotes = `-- name: GetAllNotes :many
-SELECT id, created_at, updated_at, body, user_id FROM notes ORDER BY created_at ASC
+SELECT id, created_at, updated_at, body, user_id FROM notes WHERE user_id = $1 ORDER BY created_at ASC
 `
 
-func (q *Queries) GetAllNotes(ctx context.Context) ([]Note, error) {
-	rows, err := q.db.QueryContext(ctx, getAllNotes)
+func (q *Queries) GetAllNotes(ctx context.Context, userID uuid.UUID) ([]Note, error) {
+	rows, err := q.db.QueryContext(ctx, getAllNotes, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -54,11 +59,16 @@ func (q *Queries) GetAllNotes(ctx context.Context) ([]Note, error) {
 }
 
 const getNoteByID = `-- name: GetNoteByID :one
-SELECT id, created_at, updated_at, body, user_id FROM notes WHERE id = $1
+SELECT id, created_at, updated_at, body, user_id FROM notes WHERE id = $1 AND user_id = $2
 `
 
-func (q *Queries) GetNoteByID(ctx context.Context, id uuid.UUID) (Note, error) {
-	row := q.db.QueryRowContext(ctx, getNoteByID, id)
+type GetNoteByIDParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) GetNoteByID(ctx context.Context, arg GetNoteByIDParams) (Note, error) {
+	row := q.db.QueryRowContext(ctx, getNoteByID, arg.ID, arg.UserID)
 	var i Note
 	err := row.Scan(
 		&i.ID,
@@ -70,40 +80,7 @@ func (q *Queries) GetNoteByID(ctx context.Context, id uuid.UUID) (Note, error) {
 	return i, err
 }
 
-const getNotesByAuthor = `-- name: GetNotesByAuthor :many
-SELECT id, created_at, updated_at, body, user_id FROM notes WHERE user_id = $1 ORDER BY created_at ASC
-`
-
-func (q *Queries) GetNotesByAuthor(ctx context.Context, userID uuid.UUID) ([]Note, error) {
-	rows, err := q.db.QueryContext(ctx, getNotesByAuthor, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Note
-	for rows.Next() {
-		var i Note
-		if err := rows.Scan(
-			&i.ID,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.Body,
-			&i.UserID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const newNote = `-- name: NewNote :one
+const newNote = `-- name: NewNote :exec
 INSERT INTO notes (id, created_at, updated_at, body, user_id)
 VALUES (
     gen_random_uuid (),
@@ -112,7 +89,6 @@ VALUES (
     $1,
     $2 
 )
-RETURNING id, created_at, updated_at, body, user_id
 `
 
 type NewNoteParams struct {
@@ -120,17 +96,9 @@ type NewNoteParams struct {
 	UserID uuid.UUID
 }
 
-func (q *Queries) NewNote(ctx context.Context, arg NewNoteParams) (Note, error) {
-	row := q.db.QueryRowContext(ctx, newNote, arg.Body, arg.UserID)
-	var i Note
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.Body,
-		&i.UserID,
-	)
-	return i, err
+func (q *Queries) NewNote(ctx context.Context, arg NewNoteParams) error {
+	_, err := q.db.ExecContext(ctx, newNote, arg.Body, arg.UserID)
+	return err
 }
 
 const updateNote = `-- name: UpdateNote :exec
@@ -139,7 +107,7 @@ SET
     updated_at = NOW(),
     body = $1
 WHERE 
-    id = $2
+    id = $2 AND user_id = $2
 `
 
 type UpdateNoteParams struct {
