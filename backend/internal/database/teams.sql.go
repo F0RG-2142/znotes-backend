@@ -114,6 +114,27 @@ func (q *Queries) GetTeamById(ctx context.Context, arg GetTeamByIdParams) (Team,
 	return i, err
 }
 
+const getTeamMember = `-- name: GetTeamMember :one
+SELECT user_id, team_id, role, joined_at FROM User_Teams WHERE user_id = $1 AND team_id = $2
+`
+
+type GetTeamMemberParams struct {
+	UserID uuid.UUID
+	TeamID uuid.UUID
+}
+
+func (q *Queries) GetTeamMember(ctx context.Context, arg GetTeamMemberParams) (UserTeam, error) {
+	row := q.db.QueryRowContext(ctx, getTeamMember, arg.UserID, arg.TeamID)
+	var i UserTeam
+	err := row.Scan(
+		&i.UserID,
+		&i.TeamID,
+		&i.Role,
+		&i.JoinedAt,
+	)
+	return i, err
+}
+
 const getTeamMembers = `-- name: GetTeamMembers :many
 SELECT id, created_at, updated_at, team_name, created_by, is_private FROM teams WHERE id = $1
 `
@@ -172,10 +193,15 @@ func (q *Queries) NewTeam(ctx context.Context, arg NewTeamParams) error {
 }
 
 const removeUser = `-- name: RemoveUser :exec
-DELETE FROM user_teams WHERE user_id = $1
+DELETE FROM user_teams WHERE user_id = $1 AND team_id = $2
 `
 
-func (q *Queries) RemoveUser(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, removeUser, userID)
+type RemoveUserParams struct {
+	UserID uuid.UUID
+	TeamID uuid.UUID
+}
+
+func (q *Queries) RemoveUser(ctx context.Context, arg RemoveUserParams) error {
+	_, err := q.db.ExecContext(ctx, removeUser, arg.UserID, arg.TeamID)
 	return err
 }

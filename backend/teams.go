@@ -136,10 +136,133 @@ func deleteTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 func addUserToTeam(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	//Get and validate token
+	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	//decode req to add user and what their role should be
+	var req struct {
+		UserID uuid.UUID `json:"userID"`
+		TeamID uuid.UUID `json:"teamID"`
+		Role   string    `json:"role"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	//Set the parameters for what team member to get to see if they are authorized to add someone (be admin on specified team)
+	getMemberParams := database.GetTeamMemberParams{
+		UserID: userId,
+		TeamID: req.TeamID,
+	}
+	var member database.UserTeam
+	if member, err = Cfg.db.GetTeamMember(r.Context(), getMemberParams); err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	if member.Role != "admin" {
+		http.Error(w, `{"error":"You are not authorized to add people to this group"}`, http.StatusBadRequest)
+		return
+	}
+	//add user to team
+	addParams := database.AddToTeamParams{
+		UserID: req.UserID,
+		TeamID: req.TeamID,
+		Role:   req.Role,
+	}
+	err = Cfg.db.AddToTeam(r.Context(), addParams)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func removeUserFromTeam(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	//Get and validate token
+	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	//decode req to add user and what their role should be
+	var req struct {
+		UserID uuid.UUID `json:"userID"`
+		TeamID uuid.UUID `json:"teamID"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	//See if requester is authorized to remove someone (must be admin on specified team)
+	getMemberParams := database.GetTeamMemberParams{
+		UserID: userId,
+		TeamID: req.TeamID,
+	}
+	var member database.UserTeam
+	if member, err = Cfg.db.GetTeamMember(r.Context(), getMemberParams); err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	if member.Role != "admin" {
+		http.Error(w, `{"error":"You are not authorized to add people to this group"}`, http.StatusBadRequest)
+		return
+	}
+	//remove user
+	removeUserParams := database.RemoveUserParams{
+		UserID: userId,
+		TeamID: req.TeamID,
+	}
+	if err = Cfg.db.RemoveUser(r.Context(), removeUserParams); err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func getTeamMembers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	//Get and validate token
+	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	//decode req to add user and what their role should be
+	var req struct {
+		TeamID uuid.UUID `json:"teamID"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	//See if requester is authorized to view this team
+	getMemberParams := database.GetTeamMemberParams{
+		UserID: userId,
+		TeamID: req.TeamID,
+	}
+	//Doesnt need to make member var as we just need to  see if they are in the team, anyone in a team can view members
+	if _, err = Cfg.db.GetTeamMember(r.Context(), getMemberParams); err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	//get all members
+	var members []database.Team
+	if members, err = Cfg.db.GetTeamMembers(r.Context(), req.TeamID); err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+	}
+
+	membersJSON, err := json.Marshal(members)
+	if err != nil {
+		w.WriteHeader(http.StatusFailedDependency)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(membersJSON)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 }

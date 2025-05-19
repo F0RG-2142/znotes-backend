@@ -39,7 +39,10 @@ VALUES (
 );
 
 -- name: RemoveUser :exec
-DELETE FROM user_teams WHERE user_id = $1;
+DELETE FROM user_teams WHERE user_id = $1 AND team_id = $2;
 
 -- name: GetTeamMembers :many
 SELECT * FROM teams WHERE id = $1;
+
+-- name: GetTeamMember :one
+SELECT * FROM User_Teams WHERE user_id = $1 AND team_id = $2;
