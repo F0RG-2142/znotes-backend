@@ -137,14 +137,22 @@ func getNote(w http.ResponseWriter, r *http.Request) {
 	note, err := Cfg.db.GetNoteByID(r.Context(), params)
 	if err != nil {
 		w.WriteHeader(404)
-		w.Write([]byte(err.Error()))
+		_, err = w.Write([]byte(err.Error()))
+		if err != nil {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
 	}
 	noteJSON, err := json.Marshal(note)
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(noteJSON)
+	_, err = w.Write(noteJSON)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 }
 
 func getNotes(w http.ResponseWriter, r *http.Request) {
@@ -167,7 +175,11 @@ func getNotes(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusFailedDependency)
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(yapsJSON)
+	_, err = w.Write(yapsJSON)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 }
 
 func notes(w http.ResponseWriter, r *http.Request) {

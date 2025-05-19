@@ -78,7 +78,11 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonResp)
+	_, err = w.Write(jsonResp)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 }
 
 func refresh(w http.ResponseWriter, r *http.Request) {
@@ -127,7 +131,11 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonResp)
+	_, err = w.Write(jsonResp)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 }
 
 func newUser(w http.ResponseWriter, r *http.Request) {
@@ -176,7 +184,11 @@ func newUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	w.Write(userJSON)
+	_, err = w.Write(userJSON)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -218,7 +230,11 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Token:  refreshToken,
 		UserID: user.ID,
 	}
-	Cfg.db.NewRefreshToken(r.Context(), params)
+	_, err = Cfg.db.NewRefreshToken(r.Context(), params) //Wat gaan hier aan???
+	if err != nil {
+		w.WriteHeader(http.StatusFailedDependency)
+		return
+	}
 	resp := struct {
 		ID                uuid.UUID `json:"id"`
 		CreatedAt         time.Time `json:"created_at"`
@@ -243,7 +259,11 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonResp)
+	_, err = w.Write(jsonResp)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 }
 
 func revoke(w http.ResponseWriter, r *http.Request) {

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/F0RG-2142/capstone-1/backend/internal/auth"
 	"github.com/F0RG-2142/capstone-1/backend/internal/database"
@@ -24,7 +25,11 @@ type apiConfig struct {
 var Cfg apiConfig
 
 func main() {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Failed to load env:", err)
+		return
+	}
 	dbURL := os.Getenv("DB_URL")
 	Cfg.platform = os.Getenv("PLATFORM")
 	Cfg.secret = os.Getenv("JWT_SECRET")
@@ -70,14 +75,20 @@ func main() {
 	mux.Handle("PUT /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(updateTeamNote))    //Update team Note //---
 	mux.Handle("DELETE /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(deleteTeamNote)) //Delete team note based on id //---
 
-	server := &http.Server{Handler: mux, Addr: ":8080"}
+	server := &http.Server{Handler: mux, Addr: ":8080", ReadHeaderTimeout: time.Second * 10}
 	fmt.Println("Listening on http://localhost:8080/")
-	server.ListenAndServe()
+	if err = server.ListenAndServe(); err != nil {
+		log.Fatal("Server failed:", err)
+	}
 }
 
 func readiness(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Server is good to go"))
+	_, err := w.Write([]byte("Server is good to go"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 }
 
 func metrics(w http.ResponseWriter, r *http.Request) {

@@ -80,7 +80,11 @@ func team(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(teamJSON)
+	_, err = w.Write(teamJSON)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 }
 
 func teams(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +111,11 @@ func teams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(teamsJSON)
+	_, err = w.Write(teamsJSON)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 }
 
 func deleteTeam(w http.ResponseWriter, r *http.Request) {
