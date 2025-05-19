@@ -45,14 +45,29 @@ func newTeam(w http.ResponseWriter, r *http.Request) {
 func team(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id, err := uuid.Parse(r.URL.Query().Get("teamID"))
-	var team database.Team
 	if err != nil {
 		http.Error(w, "Could not parse uuid", http.StatusBadRequest)
 		return
 	}
+	//get and validate token
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	userId, err := auth.ValidateJWT(token, Cfg.secret)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
+		return
+	}
+	var team database.Team
 	//add auth check to team call
+	params := database.GetTeamByIdParams{
+		UserID: userId,
+		TeamID: id,
+	}
 	if id != uuid.Nil {
-		team, err = Cfg.db.GetTeamById(r.Context(), id)
+		team, err = Cfg.db.GetTeamById(r.Context(), params)
 		if err != nil {
 			w.WriteHeader(http.StatusBadGateway)
 			return
@@ -86,7 +101,7 @@ func teams(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
 		return
 	}
-	teamsJSON, err := json.Marshal(team)
+	teamsJSON, err := json.Marshal(teams)
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
 		return

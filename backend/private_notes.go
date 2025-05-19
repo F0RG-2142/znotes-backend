@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/F0RG-2142/capstone-1/backend/internal/auth"
 	"github.com/F0RG-2142/capstone-1/backend/internal/database"
@@ -30,7 +29,12 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	note, err := Cfg.db.GetNoteByID(r.Context(), id)
+	getParams := database.GetNoteByIDParams{
+		ID:     id,
+		UserID: user_id,
+	}
+
+	note, err := Cfg.db.GetNoteByID(r.Context(), getParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusNotFound)
 		return
@@ -54,11 +58,11 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	params := database.UpdateNoteParams{
+	updateParams := database.UpdateNoteParams{
 		ID:   req.NoteID,
 		Body: req.Body,
 	}
-	err = Cfg.db.UpdateNote(r.Context(), params)
+	err = Cfg.db.UpdateNote(r.Context(), updateParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
 		return
@@ -85,7 +89,11 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	note, err := Cfg.db.GetNoteByID(r.Context(), id)
+	getParams := database.GetNoteByIDParams{
+		ID:     id,
+		UserID: user_id,
+	}
+	note, err := Cfg.db.GetNoteByID(r.Context(), getParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusNotFound)
 		return
@@ -94,7 +102,11 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"unauthorized"}`, http.StatusForbidden)
 		return
 	}
-	err = Cfg.db.DeleteNote(r.Context(), note.ID)
+	deleteParams := database.DeleteNoteParams{
+		ID:     id,
+		UserID: user_id,
+	}
+	err = Cfg.db.DeleteNote(r.Context(), deleteParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
 		return
@@ -108,7 +120,21 @@ func getNote(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
 	}
-	note, err := Cfg.db.GetNoteByID(r.Context(), uuid.UUID(id))
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	userId, err := auth.ValidateJWT(token, Cfg.secret)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
+		return
+	}
+	params := database.GetNoteByIDParams{
+		ID:     id,
+		UserID: userId,
+	}
+	note, err := Cfg.db.GetNoteByID(r.Context(), params)
 	if err != nil {
 		w.WriteHeader(404)
 		w.Write([]byte(err.Error()))
@@ -130,7 +156,7 @@ func getNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if id != uuid.Nil {
-		notes, err = Cfg.db.GetNotesByAuthor(r.Context(), id)
+		notes, err = Cfg.db.GetAllNotes(r.Context(), id)
 		if err != nil {
 			w.WriteHeader(http.StatusBadGateway)
 			return
@@ -159,16 +185,6 @@ func notes(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
-	//response struct
-	type returnValues struct {
-		Id        string    `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Body      string    `json:"body"`
-		UserId    string    `json:"user_id"`
-		Err       string    `json:"error"`
-		Valid     bool      `json:"valid"`
-	}
 	//get bearer token
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
@@ -187,28 +203,11 @@ func notes(w http.ResponseWriter, r *http.Request) {
 		Body:   req.Body,
 		UserID: req.UserId,
 	}
-	note, err := Cfg.db.NewNote(r.Context(), params)
+	err = Cfg.db.NewNote(r.Context(), params)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		http.Error(w, `{"error":"Failed to create chirp"}`, http.StatusInternalServerError)
 		return
 	}
-
-	respBody := returnValues{
-		Id:        note.ID.String(),
-		CreatedAt: note.CreatedAt,
-		UpdatedAt: note.UpdatedAt,
-		Body:      note.Body,
-		UserId:    note.UserID.String(),
-		Valid:     true,
-	}
-	//marshal and send reponse on successful creation
-	data, err := json.Marshal(respBody)
-	if err != nil {
-		log.Printf("Error marshalling JSON: %s", err)
-		w.WriteHeader(500)
-		return
-	}
 	w.WriteHeader(http.StatusCreated)
-	w.Write(data)
 }
