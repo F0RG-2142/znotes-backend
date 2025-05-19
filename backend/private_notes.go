@@ -14,24 +14,19 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 	//loads note from db, replaces old body with new one. Way to optimise?
 	w.Header().Set("Content-Type", "application/json")
 	//Get auth get & validate token ->
-	token, err := auth.GetBearerToken(r.Header)
+	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	user_id, err := auth.ValidateJWT(token, Cfg.secret)
-	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
-		return
-	}
-	id, err := uuid.Parse(r.URL.Query().Get("noteId")) //loads entire note struct from db
+	id, err := uuid.Parse(r.URL.Query().Get("noteID")) //loads entire note struct from db
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
 	getParams := database.GetNoteByIDParams{
 		ID:     id,
-		UserID: user_id,
+		UserID: userId,
 	}
 
 	note, err := Cfg.db.GetNoteByID(r.Context(), getParams)
@@ -39,13 +34,13 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusNotFound)
 		return
 	}
-	if note.UserID != user_id {
+	if note.UserID != userId {
 		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 		return
 	}
 	//decode req after auth
 	req := struct {
-		NoteID uuid.UUID `json:"noteId"`
+		NoteID uuid.UUID `json:"noteID"`
 		Body   string    `json:"body"`
 	}{
 		NoteID: note.ID,
@@ -72,39 +67,20 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 
 func deleteNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	//get JWT
-	token, err := auth.GetBearerToken(r.Header)
+	//get and validate token
+	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	//validate token
-	user_id, err := auth.ValidateJWT(token, Cfg.secret)
-	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
-		return
-	}
-	id, err := uuid.Parse(r.URL.Query().Get("noteId"))
+	id, err := uuid.Parse(r.URL.Query().Get("noteID"))
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
-		return
-	}
-	getParams := database.GetNoteByIDParams{
-		ID:     id,
-		UserID: user_id,
-	}
-	note, err := Cfg.db.GetNoteByID(r.Context(), getParams)
-	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusNotFound)
-		return
-	}
-	if note.UserID != user_id {
-		http.Error(w, `{"error":"unauthorized"}`, http.StatusForbidden)
 		return
 	}
 	deleteParams := database.DeleteNoteParams{
 		ID:     id,
-		UserID: user_id,
+		UserID: userId,
 	}
 	err = Cfg.db.DeleteNote(r.Context(), deleteParams)
 	if err != nil {
@@ -120,14 +96,9 @@ func getNote(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
 	}
-	token, err := auth.GetBearerToken(r.Header)
+	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
-		return
-	}
-	userId, err := auth.ValidateJWT(token, Cfg.secret)
-	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
 		return
 	}
 	params := database.GetNoteByIDParams{
@@ -198,16 +169,12 @@ func notes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get bearer token
-	token, err := auth.GetBearerToken(r.Header)
+	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
 	if err != nil {
-		w.WriteHeader(http.StatusFailedDependency)
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
 	}
-	//validate token
-	user_id, err := auth.ValidateJWT(token, Cfg.secret)
-	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-	}
-	if user_id != req.UserId {
+	if userId != req.UserId {
 		w.WriteHeader(http.StatusForbidden)
 	}
 	//save note to db

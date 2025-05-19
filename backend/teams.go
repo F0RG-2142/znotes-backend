@@ -50,14 +50,9 @@ func team(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get and validate token
-	token, err := auth.GetBearerToken(r.Header)
+	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
-		return
-	}
-	userId, err := auth.ValidateJWT(token, Cfg.secret)
-	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
 		return
 	}
 	var team database.Team
@@ -90,14 +85,10 @@ func team(w http.ResponseWriter, r *http.Request) {
 func teams(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var teams []database.Team
-	token, err := auth.GetBearerToken(r.Header)
+	//Get and validate token
+	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
-		return
-	}
-	userId, err := auth.ValidateJWT(token, Cfg.secret)
-	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
 		return
 	}
 	teams, err = Cfg.db.GetAllTeams(r.Context(), userId)
@@ -119,6 +110,29 @@ func teams(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteTeam(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	//Get and validate token
+	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	//get team id
+	teamId, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
+	}
+	deleteParams := database.DeleteTeamParams{
+		UserID: userId,
+		ID:     teamId,
+	}
+	err = Cfg.db.DeleteTeam(r.Context(), deleteParams)
+	if err != nil {
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func addUserToTeam(w http.ResponseWriter, r *http.Request) {
