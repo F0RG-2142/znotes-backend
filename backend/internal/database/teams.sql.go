@@ -11,7 +11,28 @@ import (
 	"github.com/google/uuid"
 )
 
-const addToTeam = `-- name: AddToTeam :exec
+const addNoteToTeam = `-- name: AddNoteToTeam :exec
+INSERT INTO Note_Teams (note_id, team_id, shared_at)
+SELECT $1, t.id, NOW()
+FROM Teams t
+JOIN User_Teams ut ON t.id = ut.team_id
+WHERE t.id = $2
+AND ut.user_id = $3
+AND ut.role IN ('admin', 'editor')
+`
+
+type AddNoteToTeamParams struct {
+	NoteID uuid.UUID
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) AddNoteToTeam(ctx context.Context, arg AddNoteToTeamParams) error {
+	_, err := q.db.ExecContext(ctx, addNoteToTeam, arg.NoteID, arg.ID, arg.UserID)
+	return err
+}
+
+const addUserToTeam = `-- name: AddUserToTeam :exec
 INSERT INTO user_teams (user_id, team_id, role, joined_at)
 VALUES (
     $1,
@@ -21,14 +42,14 @@ VALUES (
 )
 `
 
-type AddToTeamParams struct {
+type AddUserToTeamParams struct {
 	UserID uuid.UUID
 	TeamID uuid.UUID
 	Role   string
 }
 
-func (q *Queries) AddToTeam(ctx context.Context, arg AddToTeamParams) error {
-	_, err := q.db.ExecContext(ctx, addToTeam, arg.UserID, arg.TeamID, arg.Role)
+func (q *Queries) AddUserToTeam(ctx context.Context, arg AddUserToTeamParams) error {
+	_, err := q.db.ExecContext(ctx, addUserToTeam, arg.UserID, arg.TeamID, arg.Role)
 	return err
 }
 
@@ -169,6 +190,78 @@ func (q *Queries) GetTeamMembers(ctx context.Context, id uuid.UUID) ([]Team, err
 	return items, nil
 }
 
+const getTeamNote = `-- name: GetTeamNote :one
+SELECT n.id, n.created_at, n.updated_at, n.body, n.user_id
+FROM Notes n
+JOIN Note_Teams nt ON n.id = nt.note_id
+JOIN User_Teams ut ON nt.team_id = ut.team_id
+WHERE n.id = $1
+AND nt.team_id = $2
+AND ut.user_id = $3
+`
+
+type GetTeamNoteParams struct {
+	ID     uuid.UUID
+	TeamID uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) GetTeamNote(ctx context.Context, arg GetTeamNoteParams) (Note, error) {
+	row := q.db.QueryRowContext(ctx, getTeamNote, arg.ID, arg.TeamID, arg.UserID)
+	var i Note
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Body,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const getTeamNotes = `-- name: GetTeamNotes :many
+SELECT n.id, n.created_at, n.updated_at, n.body, n.user_id
+FROM Notes n
+JOIN Note_Teams nt ON n.id = nt.note_id
+JOIN User_Teams ut ON nt.team_id = ut.team_id
+WHERE nt.team_id = $1
+AND ut.user_id = $2
+`
+
+type GetTeamNotesParams struct {
+	TeamID uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) GetTeamNotes(ctx context.Context, arg GetTeamNotesParams) ([]Note, error) {
+	rows, err := q.db.QueryContext(ctx, getTeamNotes, arg.TeamID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Note
+	for rows.Next() {
+		var i Note
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Body,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const newTeam = `-- name: NewTeam :exec
 INSERT INTO teams (id, created_at, updated_at, team_name, created_by, is_private)
 VALUES(
@@ -192,16 +285,64 @@ func (q *Queries) NewTeam(ctx context.Context, arg NewTeamParams) error {
 	return err
 }
 
-const removeUser = `-- name: RemoveUser :exec
+const removeNoteFromTeam = `-- name: RemoveNoteFromTeam :exec
+DELETE FROM Notes n
+USING Note_Teams nt
+JOIN User_Teams ut ON nt.team_id = ut.team_id
+WHERE n.id = nt.note_id
+AND nt.note_id = $1
+AND ut.user_id = $2
+AND ut.role = 'admin'
+`
+
+type RemoveNoteFromTeamParams struct {
+	NoteID uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) RemoveNoteFromTeam(ctx context.Context, arg RemoveNoteFromTeamParams) error {
+	_, err := q.db.ExecContext(ctx, removeNoteFromTeam, arg.NoteID, arg.UserID)
+	return err
+}
+
+const removeUserFromTeam = `-- name: RemoveUserFromTeam :exec
 DELETE FROM user_teams WHERE user_id = $1 AND team_id = $2
 `
 
-type RemoveUserParams struct {
+type RemoveUserFromTeamParams struct {
 	UserID uuid.UUID
 	TeamID uuid.UUID
 }
 
-func (q *Queries) RemoveUser(ctx context.Context, arg RemoveUserParams) error {
-	_, err := q.db.ExecContext(ctx, removeUser, arg.UserID, arg.TeamID)
+func (q *Queries) RemoveUserFromTeam(ctx context.Context, arg RemoveUserFromTeamParams) error {
+	_, err := q.db.ExecContext(ctx, removeUserFromTeam, arg.UserID, arg.TeamID)
+	return err
+}
+
+const updateTeamNote = `-- name: UpdateTeamNote :exec
+UPDATE Notes n
+SET body = $1, updated_at = NOW()
+FROM Note_Teams nt
+JOIN User_Teams ut ON nt.team_id = ut.team_id
+WHERE n.id = nt.note_id
+AND n.id = $2
+AND nt.team_id = $3
+AND ut.user_id = $4
+`
+
+type UpdateTeamNoteParams struct {
+	Body   string
+	ID     uuid.UUID
+	TeamID uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) UpdateTeamNote(ctx context.Context, arg UpdateTeamNoteParams) error {
+	_, err := q.db.ExecContext(ctx, updateTeamNote,
+		arg.Body,
+		arg.ID,
+		arg.TeamID,
+		arg.UserID,
+	)
 	return err
 }

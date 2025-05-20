@@ -182,10 +182,10 @@ func notes(w http.ResponseWriter, r *http.Request) {
 		Body:   req.Body,
 		UserID: req.UserId,
 	}
-	err = Cfg.db.NewNote(r.Context(), params)
+	_, err = Cfg.db.NewNote(r.Context(), params)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
-		http.Error(w, `{"error":"Failed to create chirp"}`, http.StatusInternalServerError)
+		http.Error(w, `{"error":"Failed to create note"}`, http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
