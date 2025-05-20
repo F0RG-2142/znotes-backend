@@ -1,4 +1,4 @@
--- name: NewNote :exec
+-- name: NewNote :one
 INSERT INTO notes (id, created_at, updated_at, body, user_id)
 VALUES (
     gen_random_uuid (),
@@ -6,7 +6,8 @@ VALUES (
     NOW(),
     $1,
     $2 
-);
+)
+RETURNING id;
 
 -- name: GetAllNotes :many
 SELECT * FROM notes WHERE user_id = $1 ORDER BY created_at ASC ;

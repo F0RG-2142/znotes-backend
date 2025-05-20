@@ -173,12 +173,12 @@ func addUserToTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//add user to team
-	addParams := database.AddToTeamParams{
+	addParams := database.AddUserToTeamParams{
 		UserID: req.UserID,
 		TeamID: teamId,
 		Role:   req.Role,
 	}
-	err = Cfg.db.AddToTeam(r.Context(), addParams)
+	err = Cfg.db.AddUserToTeam(r.Context(), addParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 	}
@@ -220,11 +220,11 @@ func removeUserFromTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//remove specified member
-	removeUserParams := database.RemoveUserParams{
+	removeUserParams := database.RemoveUserFromTeamParams{
 		UserID: memberId,
 		TeamID: teamId,
 	}
-	if err = Cfg.db.RemoveUser(r.Context(), removeUserParams); err != nil {
+	if err = Cfg.db.RemoveUserFromTeam(r.Context(), removeUserParams); err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 	}
 	w.WriteHeader(http.StatusNoContent)

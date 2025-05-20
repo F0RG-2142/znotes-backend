@@ -80,7 +80,7 @@ func (q *Queries) GetNoteByID(ctx context.Context, arg GetNoteByIDParams) (Note,
 	return i, err
 }
 
-const newNote = `-- name: NewNote :exec
+const newNote = `-- name: NewNote :one
 INSERT INTO notes (id, created_at, updated_at, body, user_id)
 VALUES (
     gen_random_uuid (),
@@ -89,6 +89,7 @@ VALUES (
     $1,
     $2 
 )
+RETURNING id
 `
 
 type NewNoteParams struct {
@@ -96,9 +97,11 @@ type NewNoteParams struct {
 	UserID uuid.UUID
 }
 
-func (q *Queries) NewNote(ctx context.Context, arg NewNoteParams) error {
-	_, err := q.db.ExecContext(ctx, newNote, arg.Body, arg.UserID)
-	return err
+func (q *Queries) NewNote(ctx context.Context, arg NewNoteParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, newNote, arg.Body, arg.UserID)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateNote = `-- name: UpdateNote :exec
