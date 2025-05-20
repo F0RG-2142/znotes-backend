@@ -52,14 +52,13 @@ func main() {
 	mux.Handle("POST /api/v1/login", http.HandlerFunc(login))           //Login to profile //Done
 	mux.Handle("POST /api/v1/logout", http.HandlerFunc(revoke))         //Revoke refresh token Done
 	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(refresh)) //Refresh JWT //Done
-	mux.Handle("GET /api/v1/user/me", http.HandlerFunc(refresh))        //Get current user login details //Done
 	mux.Handle("PUT /api/v1/user/me", http.HandlerFunc(updateUser))     //Update user details //Done
 	//Private Notes
 	mux.Handle("POST /api/v1/notes", http.HandlerFunc(notes))                 //Post Private Note //Done
 	mux.Handle("GET /api/v1/notes", http.HandlerFunc(getNotes))               //Get all private notes //Done
 	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(getNote))       //Get one private note //Done
 	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(updateNote))    //Update private note //Done
-	mux.Handle("DELETE /api/{userID}/{noteID}", http.HandlerFunc(deleteNote)) //Delete note based on id //Done
+	mux.Handle("DELETE /api/notes/{noteID}", http.HandlerFunc(deleteNote)) //Delete note based on id //Done
 	//Teams
 	mux.Handle("POST /api/v1/teams", http.HandlerFunc(newTeam))                                          //Create new team //Done
 	mux.Handle("GET /api/v1/teams", http.HandlerFunc(teams))                                             //List all teams a user is part of //Done

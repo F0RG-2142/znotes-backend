@@ -174,13 +174,13 @@ func newUser(w http.ResponseWriter, r *http.Request) {
 	user, err := Cfg.db.CreateUser(r.Context(), params)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
-		http.Error(w, `{"error":"Failed to create user"}`, http.StatusInternalServerError)
+		http.Error(w, `{"error":"Failed to create user"}`, http.StatusFailedDependency)
 		return
 	}
 	userJSON, err := json.Marshal(user)
 	if err != nil {
 		log.Printf("Error marshalling user to JSON: %v", err)
-		http.Error(w, `{"error":"Internal server error"}`, http.StatusInternalServerError)
+		http.Error(w, `{"error":"Internal server error"}`, http.StatusFailedDependency)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -242,7 +242,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Email             string    `json:"email"`
 		Token             string    `json:"token"`
 		RefreshToken      string    `json:"refresh_token"`
-		Has_yappy_premium bool      `json:"has_yappy_premium"`
+		Has_notes_premium bool      `json:"has_notes_premium"`
 	}{
 		ID:                user.ID,
 		CreatedAt:         user.CreatedAt,
@@ -250,7 +250,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Email:             user.Email,
 		Token:             Token,
 		RefreshToken:      refreshToken,
-		Has_yappy_premium: user.HasNotesPremium,
+		Has_notes_premium: user.HasNotesPremium,
 	}
 
 	jsonResp, err := json.Marshal(resp)
