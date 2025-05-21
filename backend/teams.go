@@ -10,6 +10,13 @@ import (
 	"github.com/google/uuid"
 )
 
+// Creates a new team using the following parameters:
+//
+//	{
+//		"team_name":"string",
+//		"user_id":"uuid",
+//		"is_private":"bool",
+//	}
 func newTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//req struct and decoding
@@ -42,9 +49,19 @@ func newTeam(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// Gets one team from database bassed on team id given in url and returns:
+//
+//	{
+//	   "team_id":"uuid"
+//	   "created_at":"timestamp"
+//	   "updated_at" "timestamp"
+//	   "team_name":"string"
+//	   "created_by":"uuid"
+//	   "is_private":"bool"
+//	}
 func team(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	id, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
 		http.Error(w, "Could not parse uuid", http.StatusBadRequest)
 		return
@@ -56,17 +73,14 @@ func team(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var team database.Team
-	//add auth check to team call
 	params := database.GetTeamByIdParams{
 		UserID: userId,
-		TeamID: id,
+		TeamID: teamId,
 	}
-	if id != uuid.Nil {
-		team, err = Cfg.db.GetTeamById(r.Context(), params)
-		if err != nil {
-			w.WriteHeader(http.StatusBadGateway)
-			return
-		}
+	team, err = Cfg.db.GetTeamById(r.Context(), params)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
 	}
 	//check return value to see if it returns valid json as there is no json tag in database.Team
 	teamJSON, err := json.Marshal(team)
@@ -82,6 +96,20 @@ func team(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Gets all teams from database and returns:
+//
+//	{
+//		{
+//		   "team_id":"uuid"
+//		   "created_at":"timestamp"
+//		   "updated_at" "timestamp"
+//		   "team_name":"string"
+//		   "created_by":"uuid"
+//		   "is_private":"bool"
+//		}
+//
+// ...
+// }
 func teams(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var teams []database.Team
@@ -109,6 +137,7 @@ func teams(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Deletes team from database based on team id given in url
 func deleteTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
@@ -118,7 +147,7 @@ func deleteTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get team id
-	teamId, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -135,6 +164,12 @@ func deleteTeam(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Adds user to team in database based on url provided and needs the following parameters:
+//
+//	{
+//		"user_id":"uuid"
+//		"role":"string"
+//	}
 func addUserToTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
@@ -144,14 +179,14 @@ func addUserToTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get teamID
-	teamId, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
 		http.Error(w, "Could not parse uuid", http.StatusBadRequest)
 		return
 	}
 	//decode req to add user and what their role should be
 	var req struct {
-		UserID uuid.UUID `json:"userID"`
+		UserID uuid.UUID `json:"user_id"`
 		Role   string    `json:"role"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -185,10 +220,11 @@ func addUserToTeam(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Remove a user from the team
 func removeUserFromTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//get team and member id
-	teamId, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
 		http.Error(w, "Could not parse uuid", http.StatusBadRequest)
 		return
@@ -226,10 +262,12 @@ func removeUserFromTeam(w http.ResponseWriter, r *http.Request) {
 	}
 	if err = Cfg.db.RemoveUserFromTeam(r.Context(), removeUserParams); err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Get all the members of a specified group
 func getTeamMembers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
@@ -238,8 +276,8 @@ func getTeamMembers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	//get teamID
-	teamId, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	//get team ID
+	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
 		http.Error(w, "Could not parse uuid", http.StatusBadRequest)
 		return
@@ -258,6 +296,7 @@ func getTeamMembers(w http.ResponseWriter, r *http.Request) {
 	var members []database.Team
 	if members, err = Cfg.db.GetTeamMembers(r.Context(), teamId); err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		return
 	}
 
 	membersJSON, err := json.Marshal(members)
