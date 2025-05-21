@@ -1,338 +1,440 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* Base Styles */
+:root {
+    --primary-color: #3498db;
+    --primary-dark: #2980b9;
+    --secondary-color: #2ecc71;
+    --secondary-dark: #27ae60;
+    --danger-color: #e74c3c;
+    --danger-dark: #c0392b;
+    --bg-color: #f9f9f9;
+    --sidebar-bg: #f1f1f1;
+    --border-color: #ddd;
+    --text-primary: #333;
+    --text-secondary: #555;
+    --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    --radius: 4px;
+}
+
+* {
     margin: 0;
     padding: 0;
-    background-color: #f0f2f5;
-    color: #1c1e21;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg-color);
     line-height: 1.6;
 }
 
-.container {
-    width: 90%;
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
-}
-
-#auth-container {
-    max-width: 400px;
-    margin-top: 50px;
-}
-
-.auth-form h3 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 15px;
-}
-
-header {
-    background: linear-gradient(135deg, #6e8efb, #a777e3);
-    color: #fff;
-    padding: 1rem 0;
-    text-align: center;
-    margin-bottom: 25px;
-    border-radius: 8px 8px 0 0; /* If container has rounded corners */
-}
-
-header h1 {
-    margin: 0;
-    padding: 0 20px;
-    display: inline-block;
-    font-size: 2em;
-}
-
-.user-info {
-    float: right;
-    margin-right: 20px;
-    margin-top: 10px; /* Adjust as needed */
-    font-size: 0.9em;
-}
-
-#user-greeting {
-    margin-right: 15px;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="password"],
-textarea,
-select {
-    width: calc(100% - 22px); /* Full width minus padding and border */
-    padding: 12px;
-    margin-bottom: 12px;
-    border: 1px solid #dddfe2;
-    border-radius: 6px;
-    font-size: 1em;
-    box-sizing: border-box; /* Important for width calculation */
-}
-textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-button, .action-button {
-    display: inline-block;
-    background-color: #1877f2; /* Facebook blue */
-    color: #fff;
-    padding: 10px 18px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: bold;
-    margin-right: 8px;
-    transition: background-color 0.2s ease;
-}
-button:hover, .action-button:hover {
-    background-color: #166fe5;
-}
-
-#logout-button {
-    background-color: #e74c3c; /* A reddish color for logout */
-}
-#logout-button:hover {
-    background-color: #c0392b;
-}
-
-.danger-button {
-    background-color: #dc3545;
-}
-.danger-button:hover {
-    background-color: #c82333;
-}
-
-
-hr {
-    margin: 25px 0;
-    border: 0;
-    border-top: 1px solid #ccd0d5;
-}
-
-#action-bar {
-    margin-bottom: 25px;
-    padding-bottom: 25px;
-    border-bottom: 1px solid #e7e7e7;
+.app-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-}
-#action-bar label {
-    margin-right: 5px;
-    font-weight: bold;
-}
-#group-selection-area select {
-    width: auto; /* Don't make select full width here */
-    min-width: 150px;
-    padding: 10px; /* Slightly less padding for select in action bar */
-}
-#group-selection-area button {
-    padding: 10px 12px; /* Match select padding */
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-
-.notes-layout {
-    display: flex;
-    gap: 25px;
-}
-.notes-column {
-    flex: 1;
-    min-width: 300px; /* Ensure columns don't get too squished */
+/* Typography */
+h1, h2, h3, h4 {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
 }
 
-.notes-section h2, .notes-column h2 { /* Combined for styling */
-    border-bottom: 2px solid #6e8efb;
-    padding-bottom: 8px;
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 1.4em;
-}
-#current-group-name-display {
-    font-style: italic;
-    color: #555;
+h1 {
+    font-size: 1.8rem;
+    color: var(--primary-color);
 }
 
-.notes-list {
-    display: grid;
-    grid-template-columns: 1fr; /* Single column list for notes */
-    gap: 15px;
+h2 {
+    font-size: 1.5rem;
 }
 
-.note-item {
-    background: #ffffff;
-    border: 1px solid #dddfe2;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    transition: box-shadow 0.2s ease;
-}
-.note-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+h3 {
+    font-size: 1.2rem;
 }
 
-.note-item h3 {
-    margin-top: 0;
-    margin-bottom: 8px;
-    color: #1877f2;
-    font-size: 1.2em;
-}
-
-.note-item p {
-    font-size: 0.95em;
-    color: #333;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    margin-bottom: 10px;
-}
-.note-item .meta {
-    font-size: 0.8em;
-    color: #606770;
-    margin-bottom: 10px;
-}
-.note-item .actions button {
-    font-size: 0.85em;
-    padding: 6px 10px;
-    margin-top: 5px;
-    margin-right: 5px;
-}
-.note-item .actions .edit-button {
-    background-color: #f0ad4e;
-}
-.note-item .actions .edit-button:hover {
-    background-color: #ec971f;
-}
-.note-item .actions .delete-button {
-    background-color: #d9534f;
-}
-.note-item .actions .delete-button:hover {
-    background-color: #c9302c;
-}
-
-/* Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.65);
-    padding-top: 60px; /* Space from top */
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 5% auto; /* Responsive margin */
-    padding: 25px 30px;
-    border: 1px solid #888;
-    width: 90%;
-    max-width: 550px;
-    border-radius: 8px;
-    position: relative;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-.modal-content h3, .modal-content h4 {
-    margin-top: 0;
-    color: #333;
-}
-.modal-content h4 {
-    margin-top: 20px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
-}
-
-
-.close-button {
-    color: #aaa;
-    float: right; /* Keep for traditional close button placement */
-    font-size: 30px;
-    font-weight: bold;
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    line-height: 1;
-}
-.close-button:hover,
-.close-button:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.error-message {
-    color: #fa383e;
-    font-size: 0.9em;
-    margin-top: 10px;
-    font-weight: bold;
-}
-
-#group-members-list {
-    list-style-type: none;
-    padding-left: 0;
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 10px;
-}
-#group-members-list li {
+/* Header Styling */
+.app-header {
+    background-color: white;
+    padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 5px;
-    border-bottom: 1px solid #eee;
-}
-#group-members-list li:last-child {
-    border-bottom: none;
-}
-#group-members-list li button {
-    font-size: 0.8em;
-    padding: 4px 8px;
-    background-color: #f0f0f0;
-    color: #333;
-    border: 1px solid #ccc;
-}
-#group-members-list li button:hover {
-    background-color: #e0e0e0;
+    box-shadow: var(--shadow);
+    border-bottom: 1px solid var(--border-color);
 }
 
+.user-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
 
-/* Responsive adjustments */
+/* Button Styles */
+.btn {
+    padding: 0.6rem 1.2rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background-color: var(--primary-dark);
+}
+
+.btn-sm {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-dark);
+}
+
+/* Authentication Styles */
+#auth-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 2rem;
+}
+
+.auth-container {
+    background-color: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 500px;
+    overflow: hidden;
+}
+
+.auth-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.auth-tab.active {
+    border-bottom: 2px solid var(--primary-color);
+    font-weight: 500;
+}
+
+.auth-form-container {
+    padding: 2rem;
+}
+
+.auth-form {
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 1rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checkbox-label input {
+    width: auto;
+}
+
+.error-message {
+    color: var(--danger-color);
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+/* Main Content Layout */
+#main-content {
+    display: flex;
+    flex: 1;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.sidebar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.content-area {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+/* Notes List */
+.notes-list,
+.teams-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.note-item,
+.team-item {
+    padding: 0.7rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    background-color: white;
+    box-shadow: var(--shadow);
+    transition: background-color 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.note-item:hover,
+.team-item:hover {
+    background-color: #f0f7ff;
+}
+
+.note-item.active,
+.team-item.active {
+    background-color: #e3f2fd;
+    border-left: 3px solid var(--primary-color);
+}
+
+.note-title,
+.team-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.9rem;
+}
+
+.note-date,
+.team-date {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+/* Note Editor */
+#note-editor-container,
+#team-note-editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 60vh;
+    background-color: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.note-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.note-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#note-editor,
+#team-note-editor {
+    flex: 1;
+    padding: 1rem;
+    border: none;
+    resize: none;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+#note-editor:focus,
+#team-note-editor:focus {
+    outline: none;
+}
+
+/* Team View */
+.team-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.team-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.team-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: white;
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    display: none;
+}
+
+.modal.active {
+    display: block;
+}
+
+.modal-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* Team Members Management */
+.team-members-list {
+    margin-bottom: 2rem;
+}
+
+#team-members-list {
+    list-style: none;
+    margin-top: 1rem;
+}
+
+.team-member-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.member-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.member-email {
+    font-weight: 500;
+}
+
+.member-role {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.remove-member-btn {
+    color: var(--danger-color);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.add-member-form {
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Responsive Styles */
 @media (max-width: 768px) {
-    .container {
-        width: 95%;
-    }
-    header h1 {
-        font-size: 1.5em;
-    }
-    .user-info {
-        float: none;
-        text-align: center;
-        margin-top: 10px;
-    }
-    .notes-layout {
+    #main-content {
         flex-direction: column;
     }
-    #action-bar {
-        flex-direction: column;
-        align-items: stretch; /* Make buttons full width in column */
-    }
-    #action-bar > * {
+    
+    .sidebar {
         width: 100%;
-        margin-bottom: 10px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
     }
-    #group-selection-area {
-        display: flex;
-        flex-direction: column;
-    }
-     #group-selection-area select, #group-selection-area button {
-        width: 100%; /* Full width for select and button in this area on mobile */
-        margin-bottom: 5px;
+    
+    .modal {
+        width: 90%;
     }
 }

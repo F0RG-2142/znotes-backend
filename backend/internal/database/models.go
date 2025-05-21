@@ -12,49 +12,49 @@ import (
 )
 
 type Note struct {
-	ID        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Body      string
-	UserID    uuid.UUID
+	ID        uuid.UUID	`json:"note_id"`
+	CreatedAt time.Time	`json:"created_at"`
+	UpdatedAt time.Time	`json:"updated_at"`
+	Body      string	`json:"body"`
+	UserID    uuid.UUID	`json:"user_id"`
 }
 
 type NoteTeam struct {
-	NoteID   uuid.UUID
-	TeamID   uuid.UUID
-	SharedAt time.Time
+	NoteID   uuid.UUID	`json:"note_id"`
+	TeamID   uuid.UUID	`json:"team_id"`
+	SharedAt time.Time	`json:"shared_at"`
 }
 
 type RefreshToken struct {
-	Token     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	UserID    uuid.UUID
-	ExpiresAt time.Time
-	RevokedAt sql.NullTime
+	Token     string	`json:"token"`
+	CreatedAt time.Time	`json:"created_at"`
+	UpdatedAt time.Time	`json:"updated_at"`
+	UserID    uuid.UUID	`json:"user_id"`
+	ExpiresAt time.Time	`json:"expires_at"`
+	RevokedAt sql.NullTime	`json:"revoked_at"`
 }
 
 type Team struct {
-	ID        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	TeamName  string
-	CreatedBy uuid.UUID
-	IsPrivate bool
+	ID        uuid.UUID `json:"team_id"`
+	CreatedAt time.Time	`json:"created_at"`
+	UpdatedAt time.Time	`json:"updated_at"`
+	TeamName  string	`json:"team_name"`
+	CreatedBy uuid.UUID	`json:"created_by"`
+	IsPrivate bool		`json:"is_private"`
 }
 
 type User struct {
-	ID              uuid.UUID
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	Email           string
-	HashedPassword  string
-	HasNotesPremium bool
+	ID              uuid.UUID `json:"user_id"`
+	CreatedAt       time.Time`json:"created_at"`
+	UpdatedAt       time.Time`json:"updated_at"`
+	Email           string	`json:"user_email"`
+	HashedPassword  string	`json:"hashed_password"`
+	HasNotesPremium bool	`json:"has_notes_premium"`
 }
 
 type UserTeam struct {
-	UserID   uuid.UUID
-	TeamID   uuid.UUID
-	Role     string
-	JoinedAt time.Time
+	UserID   uuid.UUID	`json:"user_id"`
+	TeamID   uuid.UUID	`json:"team_id"`
+	Role     string	`json:"role"`
+	JoinedAt time.Time	`json:"joined_at"`
 }

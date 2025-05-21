@@ -161,13 +161,12 @@ func notes(w http.ResponseWriter, r *http.Request) {
 		UserId uuid.UUID `json:"user_id"`
 	}
 	//decode req
-	decoder := json.NewDecoder(r.Body)
-	defer r.Body.Close()
-	if err := decoder.Decode(&req); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Printf("Error decoding request: %v", err)
 		w.WriteHeader(500)
 		return
 	}
+	defer r.Body.Close()
 	//get bearer token
 	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
 	if err != nil {

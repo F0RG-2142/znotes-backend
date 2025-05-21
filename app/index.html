@@ -3,118 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collaborative Notes App</title>
+    <title>CollabNotes - Collaborative Note Sharing</title>
     <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
-    <div id="auth-container" class="container">
-        <h2>Login / Register</h2>
-        <form id="login-form" class="auth-form">
-            <h3>Login</h3>
-            <input type="email" id="login-email" placeholder="Email" required>
-            <input type="password" id="login-password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <hr>
-        <form id="register-form" class="auth-form">
-            <h3>Register</h3>
-            <input type="text" id="register-name" placeholder="Your Name" required>
-            <input type="email" id="register-email" placeholder="Email" required>
-            <input type="password" id="register-password" placeholder="Password" required>
-            <button type="submit">Register</button>
-        </form>
-        <p id="auth-error" class="error-message"></p>
-    </div>
-
-    <div id="app-container" class="container" style="display: none;">
-        <header>
-            <h1>Notes App</h1>
-            <div class="user-info">
-                <span id="user-greeting"></span>
-                <button id="logout-button">Logout</button>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>CollabNotes</h1>
+            <div class="user-controls">
+                <span id="user-info">Not logged in</span>
+                <button id="logout-btn" style="display: none;">Logout</button>
             </div>
         </header>
 
-        <main>
-            <div id="action-bar">
-                <button id="create-personal-note-btn" class="action-button">New Personal Note</button>
-                <button id="create-group-btn" class="action-button">Create New Group</button>
-                <div id="group-selection-area" style="display:inline-block;">
-                    <label for="group-selector">Active Group: </label>
-                    <select id="group-selector">
-                        <option value="">-- Select a Group --</option>
-                    </select>
-                    <button id="manage-selected-group-btn" style="display:none;">Manage Group</button>
+        <!-- Auth Section -->
+        <section id="auth-section">
+            <div class="auth-container">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Login</button>
+                    <button class="auth-tab" data-tab="register">Register</button>
                 </div>
-                <button id="create-group-note-btn" class="action-button" style="display:none;">New Note in Group</button>
-            </div>
-
-            <div id="note-editor-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close-button">&times;</span>
-                    <h3 id="note-editor-title">Create/Edit Note</h3>
-                    <input type="hidden" id="note-id">
-                    <input type="hidden" id="note-type"> <input type="hidden" id="note-group-id">
-                    <input type="text" id="note-title-input" placeholder="Note Title" required>
-                    <textarea id="note-content-input" placeholder="Note Content" rows="10" required></textarea>
-                    <button id="save-note-button">Save Note</button>
-                    <p id="editor-error" class="error-message"></p>
-                </div>
-            </div>
-
-            <div id="group-creator-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close-button">&times;</span>
-                    <h3>Create New Group</h3>
-                    <input type="text" id="group-name-input" placeholder="Group Name" required>
-                    <button id="save-group-button">Create Group</button>
-                    <p id="group-creator-error" class="error-message"></p>
-                </div>
-            </div>
-
-             <div id="group-manager-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close-button">&times;</span>
-                    <h3 id="group-manager-title">Manage Group: <span id="managing-group-name"></span></h3>
-                    <input type="hidden" id="managing-group-id">
-
-                    <h4>Group Details</h4>
-                    <label for="update-group-name-input">Group Name:</label>
-                    <input type="text" id="update-group-name-input" placeholder="Group Name">
-                    <button id="update-group-name-button">Update Name</button>
-                    <p id="update-group-error" class="error-message"></p>
-
-
-                    <h4>Members (<span id="member-count">0</span>)</h4>
-                    <ul id="group-members-list"></ul>
-
-                    <h4>Add Member</h4>
-                    <input type="email" id="add-member-email-input" placeholder="User Email to Add">
-                    <button id="add-member-button">Add Member</button>
-                    <p id="group-manager-error" class="error-message"></p>
-
-                    <hr>
-                    <button id="delete-group-button" class="danger-button">Delete This Group</button>
-                    <p id="delete-group-error" class="error-message"></p>
-                </div>
-            </div>
-
-            <div class="notes-layout">
-                <div class="notes-column">
-                    <h2>My Personal Notes</h2>
-                    <div id="personal-notes-list" class="notes-list">
+                
+                <div class="auth-form-container">
+                    <!-- Login Form -->
+                    <form id="login-form" class="auth-form active">
+                        <h2>Login</h2>
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" required>
                         </div>
-                </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                        <p id="login-error" class="error-message"></p>
+                    </form>
 
-                <div class="notes-column">
-                    <h2>Group Notes (<span id="current-group-name-display">No group selected</span>)</h2>
-                    <div id="group-notes-list" class="notes-list">
-                         </div>
+                    <!-- Register Form -->
+                    <form id="register-form" class="auth-form">
+                        <h2>Register</h2>
+                        <div class="form-group">
+                            <label for="register-email">Email</label>
+                            <input type="email" id="register-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Password</label>
+                            <input type="password" id="register-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Register</button>
+                        <p id="register-error" class="error-message"></p>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Section -->
+        <main id="main-content" style="display: none;">
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <h3>Personal Notes</h3>
+                    <button id="create-note-btn" class="btn btn-sm">+ New Note</button>
+                    <ul id="personal-notes-list" class="notes-list"></ul>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3>Teams</h3>
+                    <button id="create-team-btn" class="btn btn-sm">+ New Team</button>
+                    <ul id="teams-list" class="teams-list"></ul>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div id="notes-view">
+                    <div id="note-editor-container">
+                        <div class="note-editor-header">
+                            <span id="current-note-info">New Note</span>
+                            <div class="note-actions">
+                                <button id="save-note-btn" class="btn btn-sm">Save</button>
+                                <button id="delete-note-btn" class="btn btn-sm btn-danger">Delete</button>
+                            </div>
+                        </div>
+                        <textarea id="note-editor" placeholder="Start typing your note here..."></textarea>
+                    </div>
+                </div>
+                
+                <div id="team-view" style="display: none;">
+                    <div class="team-header">
+                        <h2 id="team-name">Team Name</h2>
+                        <div class="team-actions">
+                            <button id="create-team-note-btn" class="btn btn-sm">+ Team Note</button>
+                            <button id="manage-team-btn" class="btn btn-sm">Manage Team</button>
+                        </div>
+                    </div>
+                    <div class="team-content">
+                        <div class="team-notes">
+                            <h3>Team Notes</h3>
+                            <ul id="team-notes-list" class="notes-list"></ul>
+                        </div>
+                        <div id="team-note-editor-container" style="display: none;">
+                            <div class="note-editor-header">
+                                <span id="current-team-note-info">New Team Note</span>
+                                <div class="note-actions">
+                                    <button id="save-team-note-btn" class="btn btn-sm">Save</button>
+                                    <button id="delete-team-note-btn" class="btn btn-sm btn-danger">Delete</button>
+                                </div>
+                            </div>
+                            <textarea id="team-note-editor" placeholder="Start typing your team note here..."></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
-    </div>
 
-    <script src="static/scripts.js"></script>
-</body>
-</html>
+        <!-- Modal Components -->
+        <div id="modal-overlay" class="modal-overlay">
+            <div id="create-team-modal" class="modal">
+                <div class="modal-header">
+                    <h3>Create New Team</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="create-team-form">
+                        <div class="form-group">
+                            <label for="team-name-input">Team Name</label>
+                            <input type="text" id="team-name-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="team-private-checkbox">
+                                Make team private
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Team</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="manage-team-modal" class="modal">
+                <div class="modal-header">
+                    <h3>Manage Team Members</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="team-members-list">
+                        <h4>Current Members</h4>
+                        <ul id="team-members-list"></ul>
+                    </div>
+                    <div class="add-member-form">
+                        <h4>Add New Member</h4>
+                        <form id="add-member-form">
+                            <div class="form-group">
+                                <label for="member-email">User Email</label>
+                                <input type="email" id="member-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="member-role">Role</label>
+                                <select id="member-role">
+                                    <option value="member">Member</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Member</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
