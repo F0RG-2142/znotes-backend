@@ -11,26 +11,34 @@ import (
 	"github.com/google/uuid"
 )
 
+// Updatse user username and/or password, needs theese parameters:
+//
+//	{
+//			"email":"string"
+//			"password":"string"
+//	};
+//
+// and returns:
+//
+//	{
+//		"user_id":"uuid"
+//		"created_at":"timestamp"
+//		"updated_at":"timsetamp"
+//		"user_email":"string"
+//		"has_notes_premium":"bool"
+//	}
 func updateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//get and validate auth token
-	token, err := auth.GetBearerToken(r.Header)
-	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
-		return
-	}
-	user_id, err := auth.ValidateJWT(token, Cfg.secret)
+	user_id, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
 		return
 	}
 	//decode request
-	req := struct {
+	var req struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
-	}{
-		Email:    "",
-		Password: "",
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Printf("Error decoding request: %v", err)
@@ -59,18 +67,12 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//create response struct, marshal, and respond
-	resp := struct {
-		ID                uuid.UUID `json:"id"`
-		CreatedAt         time.Time `json:"created_at"`
-		UpdatedAt         time.Time `json:"updated_at"`
-		Email             string    `json:"email"`
-		Has_yappy_premium bool      `json:"has_yappy_premium"`
-	}{
-		ID:                user.ID,
-		CreatedAt:         user.CreatedAt,
-		UpdatedAt:         user.UpdatedAt,
-		Email:             user.Email,
-		Has_yappy_premium: user.HasNotesPremium,
+	resp := database.User{
+		ID:              user.ID,
+		CreatedAt:       user.CreatedAt,
+		UpdatedAt:       user.UpdatedAt,
+		Email:           user.Email,
+		HasNotesPremium: user.HasNotesPremium,
 	}
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
@@ -85,7 +87,16 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func refresh(w http.ResponseWriter, r *http.Request) {
+// Needs JWT in Authorization header
+//
+// Refreshes the JWT. This will be called every 55 mins by the client as the JWT expires every hour
+//
+// Returns:
+//
+//	{
+//		"token":"string"
+//	}
+func refreshJWT(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
@@ -138,12 +149,28 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Creatse a new user and needs the following params:
+//
+//	{
+//		"user_email":"string"
+//		"user_password":"string"
+//	}
+//
+// and returns:
+//
+//	{
+//		"user_id":"uuid"
+//		"created_at":"timestamp"
+//		"updated_at":"timsetamp"
+//		"user_email":"string"
+//		"has_notes_premium":"bool"
+//	}
 func newUser(w http.ResponseWriter, r *http.Request) {
 	//decode request body
 	w.Header().Set("Content-Type", "application/json")
 	var req struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email    string `json:"user_email"`
+		Password string `json:"user_password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Printf("Error decoding request: %v", err)
@@ -171,13 +198,21 @@ func newUser(w http.ResponseWriter, r *http.Request) {
 		Email:          req.Email,
 		HashedPassword: hashedPass,
 	}
+
 	user, err := Cfg.db.CreateUser(r.Context(), params)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		http.Error(w, `{"error":"Failed to create user"}`, http.StatusFailedDependency)
 		return
 	}
-	userJSON, err := json.Marshal(user)
+	resp := database.User{
+		ID:              user.ID,
+		CreatedAt:       user.CreatedAt,
+		UpdatedAt:       user.UpdatedAt,
+		Email:           user.Email,
+		HasNotesPremium: user.HasNotesPremium,
+	}
+	userJSON, err := json.Marshal(resp)
 	if err != nil {
 		log.Printf("Error marshalling user to JSON: %v", err)
 		http.Error(w, `{"error":"Internal server error"}`, http.StatusFailedDependency)
@@ -191,15 +226,30 @@ func newUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Log into specified account and needs the following params:
+//
+//	{
+//		"user_email":"string"
+//		"user_password":"string"
+//	}
+//
+// returns the following:
+//
+//	{
+//		"id":"uuid"
+//		"created_at":"timestamp"
+//		"updated_at":"timestamp"
+//		"email":"string"
+//		"token":"string"
+//		"refresh_token":"string"
+//		"has_notes_premium":"bool"
+//	}
 func login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//parse req
-	req := struct {
+	var req struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
-	}{
-		Email:    "",
-		Password: "",
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -266,7 +316,8 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func revoke(w http.ResponseWriter, r *http.Request) {
+// Revoke the refresh token from a user. Needs token in auth header to authorize
+func revokeRefreshToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {

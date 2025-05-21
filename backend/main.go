@@ -50,8 +50,8 @@ func main() {
 	//Users and auth
 	mux.Handle("POST /api/v1/register", http.HandlerFunc(newUser))      //New User Registration
 	mux.Handle("POST /api/v1/login", http.HandlerFunc(login))           //Login to profile
-	mux.Handle("POST /api/v1/logout", http.HandlerFunc(revoke))         //Revoke refresh tok
-	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(refresh)) //Refresh JWT
+	mux.Handle("POST /api/v1/logout", http.HandlerFunc(revokeRefreshToken))         //Revoke refresh tok
+	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(refreshJWT)) //Refresh JWT
 	mux.Handle("PUT /api/v1/user/me", http.HandlerFunc(updateUser))     //Update user details
 	//Private Notes
 	mux.Handle("POST /api/v1/notes", http.HandlerFunc(notes))                 //Post Private Note
