@@ -10,7 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// Func to post new team note
+// Func to post new team note and needs the following params:
+//
+//	{
+//		"body":"string"
+//		"user_id":"string"
+//	};
 func teamNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
@@ -20,7 +25,7 @@ func teamNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get teamID
-	teamId, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
 		http.Error(w, "Could not parse uuid", http.StatusBadRequest)
 		return
@@ -61,6 +66,20 @@ func teamNotes(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// Func to get specific team note.
+// Returns:
+//
+//	{
+//		{
+//			"note_id":"uuid"
+//			"created_at":"timestamp"
+//			"updated_at":"timestamp"
+//			"body":"string"
+//			"user_id":"uuid"
+//		}
+//	...
+//
+// }
 func getTeamNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
@@ -70,7 +89,7 @@ func getTeamNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get team id
-	teamId, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
 		http.Error(w, "Could not parse team uuid", http.StatusBadRequest)
 		return
@@ -96,6 +115,16 @@ func getTeamNotes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Func to get specific team note.
+// Returns:
+//
+//	{
+//		"note_id":"uuid"
+//		"created_at":"timestamp"
+//		"updated_at":"timestamp"
+//		"body":"string"
+//		"user_id":"uuid"
+//	}
 func getTeamNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
@@ -105,13 +134,13 @@ func getTeamNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get team id
-	teamId, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
 		http.Error(w, "Could not parse team uuid", http.StatusBadRequest)
 		return
 	}
 	//get note id
-	noteId, err := uuid.Parse(r.URL.Query().Get("noteID"))
+	noteId, err := uuid.Parse(r.URL.Query().Get("note_id"))
 	if err != nil {
 		http.Error(w, "Could not parse note uuid", http.StatusBadRequest)
 		return
@@ -140,6 +169,7 @@ func getTeamNote(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Deletes the specified note from the team and database
 func deleteTeamNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
@@ -149,7 +179,7 @@ func deleteTeamNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get note id
-	noteId, err := uuid.Parse(r.URL.Query().Get("noteID"))
+	noteId, err := uuid.Parse(r.URL.Query().Get("note_id"))
 	if err != nil {
 		http.Error(w, "Could not parse note uuid", http.StatusBadRequest)
 		return
@@ -167,6 +197,21 @@ func deleteTeamNote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// Update note body and needs following params:
+//
+//	{
+//		"body":"string"
+//	}
+//
+// Returns:
+//
+//	{
+//		"note_id":"uuid"
+//		"created_at":"timestamp"
+//		"updated_at":"timestamp"
+//		"body":"string"
+//		"user_id":"uuid"
+//	}
 func updateTeamNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
@@ -176,13 +221,13 @@ func updateTeamNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get team id
-	teamId, err := uuid.Parse(r.URL.Query().Get("teamID"))
+	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
 		http.Error(w, "Could not parse team uuid", http.StatusBadRequest)
 		return
 	}
 	//get note id
-	noteId, err := uuid.Parse(r.URL.Query().Get("noteID"))
+	noteId, err := uuid.Parse(r.URL.Query().Get("note_id"))
 	if err != nil {
 		http.Error(w, "Could not parse note uuid", http.StatusBadRequest)
 		return

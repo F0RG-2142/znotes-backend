@@ -129,7 +129,7 @@ This document outlines the "Users and Auth" API endpoints, detailing their purpo
     ```
 - **Authentication**: Requires a valid JWT in the `Authorization` header.
 
-# Notes
+# Private Notes
 ## Overview
 This document outlines the "Notes" API endpoints, detailing their purpose, parameters, responses, and authentication requirements. All request and response data is formatted in JSON for uniformity.
 
@@ -227,4 +227,284 @@ This document outlines the "Notes" API endpoints, detailing their purpose, param
 - **Response**:
   - **Status Codes**:
     - `201 Created`: Note created successfully.
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+# Teams
+## Overview
+This section details the "Teams" API endpoints, which manage team-related operations such as creation, retrieval, deletion, and membership management. All requests and responses use JSON for consistency.
+
+## Endpoints
+
+### Create Team
+- **URL**: `/api/v1/teams`
+- **Method**: `POST`
+- **Description**: Creates a new team with a specified name, creator (via user ID), and privacy setting.
+- **Parameters**:
+  - **Request Body** (JSON):
+    ```json
+    {
+      "team_name": "string",
+      "user_id": "uuid",
+      "is_private": "bool"
+    }
+    ```
+- **Response**:
+  - **Status Codes**:
+    - `201 Created`: Team successfully created.
+    - `406 Not Acceptable`: If `team_name` is missing.
+    - `500 Internal Server Error`: If there’s an error decoding the request or creating the team.
+  - **Error Responses** (JSON):
+    ```json
+    {"error": "Please enter a team name"}
+    ```
+    ```json
+    {"error": "Failed to create team"}
+    ```
+- **Authentication**: Not explicitly required in the code, though it may be intended to require a valid JWT for the creator.
+
+### Get All Teams
+- **URL**: `/api/v1/teams`
+- **Method**: `GET`
+- **Description**: Retrieves all teams associated with the authenticated user.
+- **Parameters**: None
+- **Response**:
+  - **Status Codes**:
+    - `200 OK`: Successfully retrieved teams.
+    - `400 Bad Request`: If authentication fails.
+    - `403 Forbidden`: If there’s an error retrieving teams (e.g., permissions issue).
+    - `424 Failed Dependency`: If there’s an error marshaling the response.
+    - `502 Bad Gateway`: If there’s an error writing the response.
+  - **Response Body** (JSON):
+    ```json
+    [
+      {
+        "team_id": "uuid",
+        "created_at": "timestamp",
+        "updated_at": "timestamp",
+        "team_name": "string",
+        "created_by": "uuid",
+        "is_private": "bool"
+      },
+      ...
+    ]
+    ```
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+### Get Team by ID
+- **URL**: `/api/v1/teams/{teamID}`
+- **Method**: `GET`
+- **Description**: Retrieves details of a specific team by its ID, if the authenticated user has access.
+- **Parameters**:
+  - **Query Parameters**: `team_id` (UUID)
+- **Response**:
+  - **Status Codes**:
+    - `200 OK`: Successfully retrieved the team.
+    - `400 Bad Request`: If the team ID is invalid or authentication fails.
+    - `502 Bad Gateway`: If there’s an error retrieving the team or writing the response.
+    - `424 Failed Dependency`: If there’s an error marshaling the response.
+  - **Response Body** (JSON):
+    ```json
+    {
+      "team_id": "uuid",
+      "created_at": "timestamp",
+      "updated_at": "timestamp",
+      "team_name": "string",
+      "created_by": "uuid",
+      "is_private": "bool"
+    }
+    ```
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+### Delete Team
+- **URL**: `/api/v1/teams/{teamID}`
+- **Method**: `DELETE`
+- **Description**: Deletes a specific team by its ID, if the authenticated user has the authority (e.g., creator or admin).
+- **Parameters**:
+  - **Query Parameters**: `team_id` (UUID)
+- **Response**:
+  - **Status Codes**:
+    - `204 No Content`: Team successfully deleted.
+    - `400 Bad Request`: If the team ID is invalid or authentication fails.
+    - `424 Failed Dependency`: If there’s an error deleting the team.
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+### Add User to Team
+- **URL**: `/api/v1/teams/{teamID}/members`
+- **Method**: `POST`
+- **Description**: Adds a user to a team with a specified role, if the authenticated user is an admin of the team.
+- **Parameters**:
+  - **Query Parameters**: `team_id` (UUID)
+  - **Request Body** (JSON):
+    ```json
+    {
+      "user_id": "uuid",
+      "role": "string"
+    }
+    ```
+- **Response**:
+  - **Status Codes**:
+    - `204 No Content`: User successfully added.
+    - `400 Bad Request`: If authentication fails, team ID is invalid, requester isn’t an admin, or there’s an error adding the user.
+  - **Error Responses** (JSON):
+    ```json
+    {"error": "You are not authorized to add people to this group"}
+    ```
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+### Remove User from Team
+- **URL**: `/api/v1/teams/{teamID}/members/{memberID}`
+- **Method**: `DELETE`
+- **Description**: Removes a user from a team, if the authenticated user is an admin of the team.
+- **Parameters**:
+  - **Query Parameters**: `team_id` (UUID), `memberID` (UUID)
+- **Response**:
+  - **Status Codes**:
+    - `204 No Content`: User successfully removed.
+    - `400 Bad Request`: If authentication fails, IDs are invalid, requester isn’t an admin, or there’s an error removing the user.
+  - **Error Responses** (JSON):
+    ```json
+    {"error": "You are not authorized to add people to this group"}
+    ```
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+### Get Team Members
+- **URL**: `/api/v1/teams/{teamID}/members`
+- **Method**: `GET`
+- **Description**: Retrieves all members of a specific team, if the authenticated user is a member of the team.
+- **Parameters**:
+  - **Query Parameters**: `team_id` (UUID)
+- **Response**:
+  - **Status Codes**:
+    - `200 OK`: Successfully retrieved members.
+    - `400 Bad Request`: If authentication fails, team ID is invalid, requester isn’t a member, or there’s an error retrieving members.
+    - `424 Failed Dependency`: If there’s an error marshaling the response.
+    - `502 Bad Gateway`: If there’s an error writing the response.
+  - **Response Body** (JSON):
+    ```json
+    [
+      {
+        "user_id": "uuid",
+        "team_id": "uuid",
+        "role": "string"
+      },
+      ...
+    ]
+    ```
+    *Note*: The code suggests `[]database.Team`, but it’s likely intended to return team members (e.g., `[]database.UserTeam`).
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+# Team Notes
+## Overview
+This section details the "Team Notes" API endpoints, which manage notes associated with teams. These endpoints allow for creating, retrieving, updating, and deleting notes within a team context. All requests and responses use JSON for consistency.
+
+## Endpoints
+
+### Create Team Note
+- **URL**: `/api/v1/teams/{teamID}/notes`
+- **Method**: `POST`
+- **Description**: Creates a new note for the specified team.
+- **Parameters**:
+  - **Path Parameters**: `teamID` (UUID)
+  - **Request Body** (JSON):
+    ```json
+    {
+      "body": "string",
+      "user_id": "uuid"
+    }
+    ```
+- **Response**:
+  - **Status Codes**:
+    - `201 Created`: Note successfully created.
+    - `400 Bad Request`: If authentication fails or `teamID` is invalid.
+    - `500 Internal Server Error`: If there’s an error decoding the request or creating the note.
+  - **Error Responses** (JSON):
+    ```json
+    {"error": "Failed to create note"}
+    ```
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+### Get All Team Notes
+- **URL**: `/api/v1/teams/{teamID}/notes`
+- **Method**: `GET`
+- **Description**: Retrieves all notes for the specified team.
+- **Parameters**:
+  - **Path Parameters**: `teamID` (UUID)
+- **Response**:
+  - **Status Codes**:
+    - `200 OK`: Successfully retrieved notes.
+    - `400 Bad Request`: If authentication fails or `teamID` is invalid.
+    - `424 Failed Dependency`: If there’s an error retrieving notes.
+    - `502 Bad Gateway`: If there’s an error writing the response.
+  - **Response Body** (JSON):
+    ```json
+    [
+      {
+        "note_id": "uuid",
+        "created_at": "timestamp",
+        "updated_at": "timestamp",
+        "body": "string",
+        "user_id": "uuid"
+      }
+    ]
+    ```
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+### Get Team Note by ID
+- **URL**: `/api/v1/teams/{teamID}/notes/{noteID}`
+- **Method**: `GET`
+- **Description**: Retrieves a specific note for the specified team by its ID.
+- **Parameters**:
+  - **Path Parameters**: `teamID` (UUID), `noteID` (UUID)
+- **Response**:
+  - **Status Codes**:
+    - `200 OK`: Successfully retrieved the note.
+    - `400 Bad Request`: If authentication fails, `teamID` or `noteID` is invalid, or the user doesn’t have access.
+    - `424 Failed Dependency`: If there’s an error marshaling the response.
+    - `502 Bad Gateway`: If there’s an error writing the response.
+  - **Response Body** (JSON):
+    ```json
+    {
+      "note_id": "uuid",
+      "created_at": "timestamp",
+      "updated_at": "timestamp",
+      "body": "string",
+      "user_id": "uuid"
+    }
+    ```
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+### Update Team Note
+- **URL**: `/api/v1/teams/{teamID}/notes/{noteID}`
+- **Method**: `PUT`
+- **Description**: Updates the body of a specific note for the specified team.
+- **Parameters**:
+  - **Path Parameters**: `teamID` (UUID), `noteID` (UUID)
+  - **Request Body** (JSON):
+    ```json
+    {
+      "body": "string"
+    }
+    ```
+- **Response**:
+  - **Status Codes**:
+    - `204 No Content`: Note successfully updated.
+    - `400 Bad Request`: If authentication fails, `teamID` or `noteID` is invalid, or the user doesn’t have permission.
+    - `500 Internal Server Error`: If there’s an error decoding the request.
+    - `424 Failed Dependency`: If there’s an error updating the note.
+  - **Error Responses** (JSON):
+    ```json
+    {"error": "error message"}
+    ```
+- **Authentication**: Requires a valid JWT in the `Authorization` header.
+
+### Delete Team Note
+- **URL**: `/api/v1/teams/{teamID}/notes/{noteID}`
+- **Method**: `DELETE`
+- **Description**: Deletes a specific note from the specified team and database.
+- **Parameters**:
+  - **Path Parameters**: `teamID` (UUID), `noteID` (UUID)
+- **Response**:
+  - **Status Codes**:
+    - `204 No Content`: Note successfully deleted.
+    - `400 Bad Request`: If authentication fails, `noteID` is invalid, or the user doesn’t have permission.
 - **Authentication**: Requires a valid JWT in the `Authorization` header.
