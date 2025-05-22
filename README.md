@@ -22,7 +22,7 @@ I originally to only have a table for each stored component (users, groups, note
 ## Database Schema
 <img src="./db_diagram.png" alt="Database Diagram" height ="70%" width="70%">
 
-## Contribute
+## Contributing
 ### Clone The Repo
 ```bash
   git clone https://github.com/F0RG-2142/ZNotes@latest
