@@ -41,12 +41,31 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	//Utility and admin
+	//Frontend Routes
 	mux.Handle("/", http.FileServer(http.Dir("../app/")))
-	mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir("../app/")))) // Serve app landing page //Done
-	mux.Handle("GET /api/v1/healthz", http.HandlerFunc(readiness))                       //Check if server is ready //Done
-	mux.Handle("GET /api/v1/admin/metrics", http.HandlerFunc(metrics))                   //Server metrics endpoint //---
-	mux.Handle("POST /api/v1/payment/webhooks", http.HandlerFunc(payment))               //Payment platform webhook //---
+	mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir("../app/")))) // Serve app landing page
+	//Core auth
+	mux.Handle("/login-form", serveFragment("login-form.html"))
+	mux.Handle("/register-form", serveFragment("register-form.html"))
+	mux.Handle("/initial-dashboard-view", serveFragment("initial-dashboard-view.html"))
+	mux.Handle("/update-profile-form", serveFragment("update-profile-form.html"))
+	//Private Notes Views & Forms
+	mux.Handle("/my-notes-view", serveFragment("my-notes-view.html"))
+	mux.Handle("/note-form-create", serveFragment("note-form-create.html"))
+	mux.Handle("/note-form-edit/", serveFragment("note-form-edit.html"))
+	//Teams Views & Forms
+	mux.Handle("/my-teams-view", serveFragment("my-teams-view.html"))
+	mux.Handle("/team-form-create", serveFragment("team-form-create.html"))
+	mux.Handle("/team-details-view/", serveFragment("team-details-view.html"))
+	mux.Handle("/team-member-add-form/", serveFragment("team-member-add-form.html"))
+	//Team Notes Forms
+	mux.Handle("/team-note-form-create/", serveFragment("team-note-form-create.html"))
+	mux.Handle("/team-note-form-edit/", serveFragment("team-note-form-edit.html"))
+
+	//Utility and admin
+	mux.Handle("GET /api/v1/healthz", http.HandlerFunc(readiness))         //Check if server is ready //Done
+	mux.Handle("GET /api/v1/admin/metrics", http.HandlerFunc(metrics))     //Server metrics endpoint //---
+	mux.Handle("POST /api/v1/payment/webhooks", http.HandlerFunc(payment)) //Payment platform webhook //---
 	//Users and auth
 	mux.Handle("POST /api/v1/register", http.HandlerFunc(newUser))          //New User Registration
 	mux.Handle("POST /api/v1/login", http.HandlerFunc(login))               //Login to profile
@@ -78,6 +97,12 @@ func main() {
 	fmt.Println("Listening on http://localhost:8080/")
 	if err = server.ListenAndServe(); err != nil {
 		log.Fatal("Server failed:", err)
+	}
+}
+
+func serveFragment(filename string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "../app/fragments/"+filename)
 	}
 }
 
