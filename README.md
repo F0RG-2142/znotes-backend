@@ -3,7 +3,7 @@
 This API powers a note-taking application, offering endpoints for user authentication, group management, and note management. It uses JSON for data transfer, ensuring a more lightweight and structured communication (compared to XML) between the client and server. Security is managed by  JWT (JSON Web Tokens) and refresh tokens for longer sessions as well as password hashing and user authentication on the tokens for every request (outside of login and registering of course)
 This is just the backend of the app as I am no frontend wizard (yet) and like focussing on the business logic much more as that is where my interest lays.
 
-## Why did I make this?
+## Why Did I Make This?
 I am a big fan of Notion and found what they do really interesting but the problem that I had is that it is very bloated with things I dont need which also makes it very slow to load and interact with my notes in my expeirence (maybe thats because I dont have premium?). But that inspired me to create my own note taking app that hass leess features than Notion but has the upside of being able to show me my notes whenever I need them instead of having to take a coffee break while waiting for the app to start up first. (Notion isn't that slow but as someone that expects instant reaction, 3 or 4 seconds of loading is unbearable enough for me to make my own implementation)
 
 ## Devops
@@ -21,6 +21,35 @@ I originally to only have a table for each stored component (users, groups, note
 
 ## Database Schema
 <img src="./db_diagram.png" alt="Database Diagram" height ="70%" width="70%">
+
+## Contribute
+### Clone The Repo
+```bash
+  git clone https://github.com/F0RG-2142/ZNotes@latest
+  cd ZNotes
+```
+### Create .env file
+```bash
+touch .env 
+```
+Enter your environment secret as JWT_SECRET = "your super secret secret" & your postgres url under DB_URL 
+### Use goose to run the db up migrations
+```bash
+go install github.com/pressly/goose/v3/cmd/goose@latest
+goose goose postgres "<DB_URL>" up
+```
+## And just run the pre-compiled executable
+```bash
+ZNotes
+```
+or compile it yourself if not on windows
+```bash
+go build .
+```
+Now everything is up and running and all the endpoints are working! All ready to be interacted with using postman or curl. (as I haven't built a frontend yet)\
+
+## Submit a pull request
+If you'd like to contribute, please fork the repository and open a pull request to the `main` branch.
 
 # API Documentation
 # Users and Auth
