@@ -14,8 +14,12 @@ I originally to only have a table for each stored component (users, groups, note
 I mostly just used github actions as seen in the './.github/' directory for my CI workflows when making pull requests to my main branch.
 As this is not a fullstack app (again, yet) there is no CD workflow implemented to publish the merges to main
 
+## Why did I make this?
+I am a big fan of Notion and found what they do really interesting but the problem that I had is that it is very bloated with things I dont need which also makes it very slow to load and interact with my notes in my expeirence (maybe thats because I dont have premium?). But that inspired me to create my own note taking app that hass leess features than Notion but has the upside of being able to show me my notes whenever I need them instead of having to take a coffee break while waiting for the app to start up first. (Notion isn't that slow but as someone that expects instant reaction, 3 or 4 seconds of loading is unbearable enough for me to make my own implementation)
+
 ## Other info
 There are fields in the database and planned endpoints to implement payment webhooks and premium features for monetisations but that will probably be implemented at a later date (monetisation only comes after the project can actually be released for use lol)
+Iternally I made function descriptions and their needed paramters and outputs as expressive as possible if anyone wants to fork the repo and contribute in the future
 I used goose for the database migrations
 
 # API Documentation
