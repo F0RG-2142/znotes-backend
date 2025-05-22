@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/F0RG-2142/capstone-1/backend/internal/auth"
-	"github.com/F0RG-2142/capstone-1/backend/internal/database"
+	"github.com/F0RG-2142/capstone-1/internal/auth"
+	"github.com/F0RG-2142/capstone-1/internal/database"
 	"github.com/google/uuid"
 )
 
