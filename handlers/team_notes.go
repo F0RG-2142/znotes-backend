@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/F0RG-2142/capstone-1/internal/auth"
 	"github.com/F0RG-2142/capstone-1/internal/database"
+	"github.com/F0RG-2142/capstone-1/models"
 	"github.com/google/uuid"
 )
 
@@ -16,10 +17,10 @@ import (
 //		"body":"string"
 //		"user_id":"string"
 //	};
-func teamNotes(w http.ResponseWriter, r *http.Request) {
+func TeamNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -48,7 +49,7 @@ func teamNotes(w http.ResponseWriter, r *http.Request) {
 		Body:   req.Body,
 		UserID: userId,
 	}
-	noteId, err := Cfg.db.NewNote(r.Context(), newNoteParams)
+	noteId, err := models.Cfg.DB.NewNote(r.Context(), newNoteParams)
 	if err != nil {
 		http.Error(w, `{"error":"Failed to create note"}`, http.StatusInternalServerError)
 		return
@@ -58,7 +59,7 @@ func teamNotes(w http.ResponseWriter, r *http.Request) {
 		ID:     teamId,
 		UserID: userId,
 	}
-	err = Cfg.db.AddNoteToTeam(r.Context(), teamNoteParams)
+	err = models.Cfg.DB.AddNoteToTeam(r.Context(), teamNoteParams)
 	if err != nil {
 		http.Error(w, `{"error":"Failed to create note"}`, http.StatusInternalServerError)
 		return
@@ -80,10 +81,10 @@ func teamNotes(w http.ResponseWriter, r *http.Request) {
 //	...
 //
 // }
-func getTeamNotes(w http.ResponseWriter, r *http.Request) {
+func GetTeamNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -98,7 +99,7 @@ func getTeamNotes(w http.ResponseWriter, r *http.Request) {
 		TeamID: teamId,
 		UserID: userId,
 	}
-	notes, err := Cfg.db.GetTeamNotes(r.Context(), getTeamNotesParams)
+	notes, err := models.Cfg.DB.GetTeamNotes(r.Context(), getTeamNotesParams)
 	if err != nil {
 		http.Error(w, "Could not get notes, please reload", http.StatusFailedDependency)
 		return
@@ -125,10 +126,10 @@ func getTeamNotes(w http.ResponseWriter, r *http.Request) {
 //		"body":"string"
 //		"user_id":"uuid"
 //	}
-func getTeamNote(w http.ResponseWriter, r *http.Request) {
+func GetTeamNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -151,7 +152,7 @@ func getTeamNote(w http.ResponseWriter, r *http.Request) {
 		TeamID: teamId,
 		UserID: userId,
 	}
-	note, err := Cfg.db.GetTeamNote(r.Context(), getTeamNoteParams)
+	note, err := models.Cfg.DB.GetTeamNote(r.Context(), getTeamNoteParams)
 	if err != nil {
 		http.Error(w, "Could note get note, please reload", http.StatusBadRequest)
 		return
@@ -170,10 +171,10 @@ func getTeamNote(w http.ResponseWriter, r *http.Request) {
 }
 
 // Deletes the specified note from the team and database
-func deleteTeamNote(w http.ResponseWriter, r *http.Request) {
+func DeleteTeamNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -189,7 +190,7 @@ func deleteTeamNote(w http.ResponseWriter, r *http.Request) {
 		NoteID: noteId,
 		UserID: userId,
 	}
-	err = Cfg.db.RemoveNoteFromTeam(r.Context(), removeNoteFromTeamParams)
+	err = models.Cfg.DB.RemoveNoteFromTeam(r.Context(), removeNoteFromTeamParams)
 	if err != nil {
 		http.Error(w, "Could note delete note, please try again", http.StatusBadRequest)
 		return
@@ -212,10 +213,10 @@ func deleteTeamNote(w http.ResponseWriter, r *http.Request) {
 //		"body":"string"
 //		"user_id":"uuid"
 //	}
-func updateTeamNote(w http.ResponseWriter, r *http.Request) {
+func UpdateTeamNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -249,7 +250,7 @@ func updateTeamNote(w http.ResponseWriter, r *http.Request) {
 		TeamID: teamId,
 		UserID: userId,
 	}
-	err = Cfg.db.UpdateTeamNote(r.Context(), updateTeamNoteParams)
+	err = models.Cfg.DB.UpdateTeamNote(r.Context(), updateTeamNoteParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
 		return

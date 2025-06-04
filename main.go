@@ -9,20 +9,15 @@ import (
 	"os"
 	"time"
 
+	"github.com/F0RG-2142/capstone-1/handlers"
 	"github.com/F0RG-2142/capstone-1/internal/auth"
-	"github.com/F0RG-2142/capstone-1/internal/database"
+	"github.com/F0RG-2142/capstone-1/models"
+	"github.com/a-h/templ"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
+
 	_ "github.com/lib/pq"
 )
-
-type apiConfig struct {
-	db       *database.Queries
-	platform string
-	secret   string
-}
-
-var Cfg apiConfig
 
 func main() {
 	err := godotenv.Load()
@@ -31,8 +26,8 @@ func main() {
 		return
 	}
 	dbURL := os.Getenv("DB_URL")
-	Cfg.platform = os.Getenv("PLATFORM")
-	Cfg.secret = os.Getenv("JWT_SECRET")
+	models.Cfg.Platform = os.Getenv("PLATFORM")
+	models.Cfg.Secret = os.Getenv("JWT_SECRET")
 
 	db, _ := sql.Open("postgres", dbURL)
 	defer db.Close()
@@ -42,67 +37,43 @@ func main() {
 
 	mux := http.NewServeMux()
 	//Frontend Routes
-	mux.Handle("/", http.FileServer(http.Dir("../app/")))
-	mux.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir("../app/")))) // Serve app landing page
-	//Core auth
-	mux.Handle("/login-form", serveFragment("login-form.html"))
-	mux.Handle("/register-form", serveFragment("register-form.html"))
-	mux.Handle("/initial-dashboard-view", serveFragment("initial-dashboard-view.html"))
-	mux.Handle("/update-profile-form", serveFragment("update-profile-form.html"))
-	//Private Notes Views & Forms
-	mux.Handle("/my-notes-view", serveFragment("my-notes-view.html"))
-	mux.Handle("/note-form-create", serveFragment("note-form-create.html"))
-	mux.Handle("/note-form-edit/", serveFragment("note-form-edit.html"))
-	//Teams Views & Forms
-	mux.Handle("/my-teams-view", serveFragment("my-teams-view.html"))
-	mux.Handle("/team-form-create", serveFragment("team-form-create.html"))
-	mux.Handle("/team-details-view/", serveFragment("team-details-view.html"))
-	mux.Handle("/team-member-add-form/", serveFragment("team-member-add-form.html"))
-	//Team Notes Forms
-	mux.Handle("/team-note-form-create/", serveFragment("team-note-form-create.html"))
-	mux.Handle("/team-note-form-edit/", serveFragment("team-note-form-edit.html"))
+	mux.Handle("/", templ.Handler(button("John", "Say Hello")))
 
 	//Utility and admin
 	mux.Handle("GET /api/v1/healthz", http.HandlerFunc(readiness))         //Check if server is ready //Done
 	mux.Handle("GET /api/v1/admin/metrics", http.HandlerFunc(metrics))     //Server metrics endpoint //---
 	mux.Handle("POST /api/v1/payment/webhooks", http.HandlerFunc(payment)) //Payment platform webhook //---
 	//Users and auth
-	mux.Handle("POST /api/v1/register", http.HandlerFunc(newUser))          //New User Registration
-	mux.Handle("POST /api/v1/login", http.HandlerFunc(login))               //Login to profile
-	mux.Handle("POST /api/v1/logout", http.HandlerFunc(revokeRefreshToken)) //Revoke refresh tok
-	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(refreshJWT))  //Refresh JWT
-	mux.Handle("PUT /api/v1/user/me", http.HandlerFunc(updateUser))         //Update user details
+	mux.Handle("POST /api/v1/register", http.HandlerFunc(handlers.NewUser))          //New User Registration
+	mux.Handle("POST /api/v1/login", http.HandlerFunc(handlers.Login))               //Login to profile
+	mux.Handle("POST /api/v1/logout", http.HandlerFunc(handlers.RevokeRefreshToken)) //Revoke refresh tok
+	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(handlers.RefreshJWT))  //Refresh JWT
+	mux.Handle("PUT /api/v1/user/me", http.HandlerFunc(handlers.UpdateUser))         //Update user details
 	//Private Notes
-	mux.Handle("POST /api/v1/notes", http.HandlerFunc(notes))              //Post Private Note //Done
-	mux.Handle("GET /api/v1/notes", http.HandlerFunc(getNotes))            //Get all private notes //Done
-	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(getNote))    //Get one private note //Done
-	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(updateNote)) //Update private note //Done
-	mux.Handle("DELETE /api/notes/{noteID}", http.HandlerFunc(deleteNote)) //Delete note based on id //Done
+	mux.Handle("POST /api/v1/notes", http.HandlerFunc(handlers.Notes))              //Post Private Note //Done
+	mux.Handle("GET /api/v1/notes", http.HandlerFunc(handlers.GetNotes))            //Get all private notes //Done
+	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(handlers.GetNote))    //Get one private note //Done
+	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(handlers.UpdateNote)) //Update private note //Done
+	mux.Handle("DELETE /api/notes/{noteID}", http.HandlerFunc(handlers.DeleteNote)) //Delete note based on id //Done
 	//Teams
-	mux.Handle("POST /api/v1/teams", http.HandlerFunc(newTeam))                                          //Create new team
-	mux.Handle("GET /api/v1/teams", http.HandlerFunc(teams))                                             //List all teams a user is part of
-	mux.Handle("GET /api/v1/teams/{teamID}", http.HandlerFunc(team))                                     //Get specific team details
-	mux.Handle("DELETE /api/v1/teams/{teamID}", http.HandlerFunc(deleteTeam))                            //Delete team
-	mux.Handle("POST /api/v1/teams/{teamID}/members", http.HandlerFunc(addUserToTeam))                   //Add new user to team
-	mux.Handle("DELETE /api/v1/teams/{teamID}/members/{memberID}", http.HandlerFunc(removeUserFromTeam)) //Remove user from team
-	mux.Handle("GET /api/v1/teams/{teamID}/members", http.HandlerFunc(getTeamMembers))                   //Get all users in team
+	mux.Handle("POST /api/v1/teams", http.HandlerFunc(handlers.NewTeam))                                          //Create new team
+	mux.Handle("GET /api/v1/teams", http.HandlerFunc(handlers.Teams))                                             //List all teams a user is part of
+	mux.Handle("GET /api/v1/teams/{teamID}", http.HandlerFunc(handlers.Team))                                     //Get specific team details
+	mux.Handle("DELETE /api/v1/teams/{teamID}", http.HandlerFunc(handlers.DeleteTeam))                            //Delete team
+	mux.Handle("POST /api/v1/teams/{teamID}/members", http.HandlerFunc(handlers.AddUserToTeam))                   //Add new user to team
+	mux.Handle("DELETE /api/v1/teams/{teamID}/members/{memberID}", http.HandlerFunc(handlers.RemoveUserFromTeam)) //Remove user from team
+	mux.Handle("GET /api/v1/teams/{teamID}/members", http.HandlerFunc(handlers.GetTeamMembers))                   //Get all users in team
 	//Team Notes
-	mux.Handle("POST /api/v1/teams/{teamID}/notes", http.HandlerFunc(teamNotes))                 //Post team Note
-	mux.Handle("GET /api/v1/teams/{teamID}/notes", http.HandlerFunc(getTeamNotes))               //Get all team notes
-	mux.Handle("GET /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(getTeamNote))       //Get one team note
-	mux.Handle("PUT /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(updateTeamNote))    //Update team Note
-	mux.Handle("DELETE /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(deleteTeamNote)) //Delete team note based on id
+	mux.Handle("POST /api/v1/teams/{teamID}/notes", http.HandlerFunc(handlers.TeamNotes))                 //Post team Note
+	mux.Handle("GET /api/v1/teams/{teamID}/notes", http.HandlerFunc(handlers.GetTeamNotes))               //Get all team notes
+	mux.Handle("GET /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.GetTeamNote))       //Get one team note
+	mux.Handle("PUT /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.UpdateTeamNote))    //Update team Note
+	mux.Handle("DELETE /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.DeleteTeamNote)) //Delete team note based on id
 
 	server := &http.Server{Handler: mux, Addr: ":8080", ReadHeaderTimeout: time.Second * 10}
 	fmt.Println("Listening on http://localhost:8080/")
 	if err = server.ListenAndServe(); err != nil {
 		log.Fatal("Server failed:", err)
-	}
-}
-
-func serveFragment(filename string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "../app/fragments/"+filename)
 	}
 }
 
@@ -149,7 +120,7 @@ func payment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusNoContent)
 	}
 
-	err = Cfg.db.GivePremium(r.Context(), req.Data.UserId)
+	err = models.Cfg.DB.GivePremium(r.Context(), req.Data.UserId)
 	if err != nil {
 		http.Error(w, "User Not Found", http.StatusNotFound)
 	}

@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/F0RG-2142/capstone-1/internal/auth"
 	"github.com/F0RG-2142/capstone-1/internal/database"
+	"github.com/F0RG-2142/capstone-1/models"
 	"github.com/google/uuid"
 )
 
@@ -17,7 +18,7 @@ import (
 //		"user_id":"uuid",
 //		"is_private":"bool",
 //	}
-func newTeam(w http.ResponseWriter, r *http.Request) {
+func NewTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//req struct and decoding
 	var req struct {
@@ -40,7 +41,7 @@ func newTeam(w http.ResponseWriter, r *http.Request) {
 		CreatedBy: req.UserId,
 		IsPrivate: req.IsPrivate,
 	}
-	err := Cfg.db.NewTeam(r.Context(), params)
+	err := models.Cfg.DB.NewTeam(r.Context(), params)
 	if err != nil {
 		log.Printf("Error creating team: %v", err)
 		http.Error(w, `{"error":"Failed to create team"}`, http.StatusInternalServerError)
@@ -59,7 +60,7 @@ func newTeam(w http.ResponseWriter, r *http.Request) {
 //	   "created_by":"uuid"
 //	   "is_private":"bool"
 //	}
-func team(w http.ResponseWriter, r *http.Request) {
+func Team(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
@@ -67,7 +68,7 @@ func team(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -77,7 +78,7 @@ func team(w http.ResponseWriter, r *http.Request) {
 		UserID: userId,
 		TeamID: teamId,
 	}
-	team, err = Cfg.db.GetTeamById(r.Context(), params)
+	team, err = models.Cfg.DB.GetTeamById(r.Context(), params)
 	if err != nil {
 		w.WriteHeader(http.StatusBadGateway)
 		return
@@ -110,16 +111,16 @@ func team(w http.ResponseWriter, r *http.Request) {
 //
 // ...
 // }
-func teams(w http.ResponseWriter, r *http.Request) {
+func Teams(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var teams []database.Team
 	//Get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	teams, err = Cfg.db.GetAllTeams(r.Context(), userId)
+	teams, err = models.Cfg.DB.GetAllTeams(r.Context(), userId)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
 		return
@@ -138,10 +139,10 @@ func teams(w http.ResponseWriter, r *http.Request) {
 }
 
 // Deletes team from database based on team id given in url
-func deleteTeam(w http.ResponseWriter, r *http.Request) {
+func DeleteTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -156,7 +157,7 @@ func deleteTeam(w http.ResponseWriter, r *http.Request) {
 		UserID: userId,
 		ID:     teamId,
 	}
-	err = Cfg.db.DeleteTeam(r.Context(), deleteParams)
+	err = models.Cfg.DB.DeleteTeam(r.Context(), deleteParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
 		return
@@ -170,10 +171,10 @@ func deleteTeam(w http.ResponseWriter, r *http.Request) {
 //		"user_id":"uuid"
 //		"role":"string"
 //	}
-func addUserToTeam(w http.ResponseWriter, r *http.Request) {
+func AddUserToTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -199,7 +200,7 @@ func addUserToTeam(w http.ResponseWriter, r *http.Request) {
 		TeamID: teamId,
 	}
 	var member database.UserTeam
-	if member, err = Cfg.db.GetTeamMember(r.Context(), getMemberParams); err != nil {
+	if member, err = models.Cfg.DB.GetTeamMember(r.Context(), getMemberParams); err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
@@ -213,7 +214,7 @@ func addUserToTeam(w http.ResponseWriter, r *http.Request) {
 		TeamID: teamId,
 		Role:   req.Role,
 	}
-	err = Cfg.db.AddUserToTeam(r.Context(), addParams)
+	err = models.Cfg.DB.AddUserToTeam(r.Context(), addParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 	}
@@ -221,7 +222,7 @@ func addUserToTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 // Remove a user from the team
-func removeUserFromTeam(w http.ResponseWriter, r *http.Request) {
+func RemoveUserFromTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//get team and member id
 	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
@@ -236,7 +237,7 @@ func removeUserFromTeam(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -247,7 +248,7 @@ func removeUserFromTeam(w http.ResponseWriter, r *http.Request) {
 		TeamID: teamId,
 	}
 	var member database.UserTeam
-	if member, err = Cfg.db.GetTeamMember(r.Context(), getMemberParams); err != nil {
+	if member, err = models.Cfg.DB.GetTeamMember(r.Context(), getMemberParams); err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
@@ -260,7 +261,7 @@ func removeUserFromTeam(w http.ResponseWriter, r *http.Request) {
 		UserID: memberId,
 		TeamID: teamId,
 	}
-	if err = Cfg.db.RemoveUserFromTeam(r.Context(), removeUserParams); err != nil {
+	if err = models.Cfg.DB.RemoveUserFromTeam(r.Context(), removeUserParams); err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
@@ -268,10 +269,10 @@ func removeUserFromTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get all the members of a specified group
-func getTeamMembers(w http.ResponseWriter, r *http.Request) {
+func GetTeamMembers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -288,13 +289,13 @@ func getTeamMembers(w http.ResponseWriter, r *http.Request) {
 		TeamID: teamId,
 	}
 	//Doesnt need to make member var as we just need to  see if they are in the team, anyone in a team can view members
-	if _, err = Cfg.db.GetTeamMember(r.Context(), getMemberParams); err != nil {
+	if _, err = models.Cfg.DB.GetTeamMember(r.Context(), getMemberParams); err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
 	//get all members
 	var members []database.Team
-	if members, err = Cfg.db.GetTeamMembers(r.Context(), teamId); err != nil {
+	if members, err = models.Cfg.DB.GetTeamMembers(r.Context(), teamId); err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}

@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/F0RG-2142/capstone-1/internal/auth"
 	"github.com/F0RG-2142/capstone-1/internal/database"
+	"github.com/F0RG-2142/capstone-1/models"
 	"github.com/google/uuid"
 )
 
@@ -27,10 +28,10 @@ import (
 //		"user_email":"string"
 //		"has_notes_premium":"bool"
 //	}
-func updateUser(w http.ResponseWriter, r *http.Request) {
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//get and validate auth token
-	user_id, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	user_id, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
 		return
@@ -55,13 +56,13 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		HashedPassword: hashed_pass,
 		ID:             user_id,
 	}
-	err = Cfg.db.UpdateUser(r.Context(), params)
+	err = models.Cfg.DB.UpdateUser(r.Context(), params)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
 		return
 	}
 	//get updated user
-	user, err := Cfg.db.GetUserByEmail(r.Context(), req.Email)
+	user, err := models.Cfg.DB.GetUserByEmail(r.Context(), req.Email)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
 		return
@@ -96,14 +97,14 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 //	{
 //		"token":"string"
 //	}
-func refreshJWT(w http.ResponseWriter, r *http.Request) {
+func RefreshJWT(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
 		return
 	}
-	refreshToken, err := Cfg.db.GetRefreshToken(r.Context(), token)
+	refreshToken, err := models.Cfg.DB.GetRefreshToken(r.Context(), token)
 	if err != nil {
 		log.Printf("Error fetching refresh token: %v", err)
 		http.Error(w, `{"error":"Invalid refresh token"}`, http.StatusForbidden)
@@ -117,7 +118,7 @@ func refreshJWT(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"Refresh token is expired"}`, http.StatusForbidden)
 		return
 	}
-	tokenSecret := Cfg.secret
+	tokenSecret := models.Cfg.Secret
 	if tokenSecret == "" {
 		log.Println("JWT_SECRET not set")
 		http.Error(w, `{"error":"Server configuration error"}`, http.StatusInternalServerError)
@@ -165,7 +166,7 @@ func refreshJWT(w http.ResponseWriter, r *http.Request) {
 //		"user_email":"string"
 //		"has_notes_premium":"bool"
 //	}
-func newUser(w http.ResponseWriter, r *http.Request) {
+func NewUser(w http.ResponseWriter, r *http.Request) {
 	//decode request body
 	w.Header().Set("Content-Type", "application/json")
 	var req struct {
@@ -199,7 +200,7 @@ func newUser(w http.ResponseWriter, r *http.Request) {
 		HashedPassword: hashedPass,
 	}
 
-	user, err := Cfg.db.CreateUser(r.Context(), params)
+	user, err := models.Cfg.DB.CreateUser(r.Context(), params)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		http.Error(w, `{"error":"Failed to create user"}`, http.StatusFailedDependency)
@@ -244,7 +245,7 @@ func newUser(w http.ResponseWriter, r *http.Request) {
 //		"refresh_token":"string"
 //		"has_notes_premium":"bool"
 //	}
-func login(w http.ResponseWriter, r *http.Request) {
+func Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//parse req
 	var req struct {
@@ -259,7 +260,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 	//verify usern and passw
-	user, err := Cfg.db.GetUserByEmail(r.Context(), req.Email)
+	user, err := models.Cfg.DB.GetUserByEmail(r.Context(), req.Email)
 	if err != nil {
 		http.Error(w, `{"error":"Incorrect username or password"}`, http.StatusBadRequest)
 	}
@@ -269,7 +270,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"Incorrect username or password"}`, http.StatusBadRequest)
 	}
 	//make jwt
-	Token, err := auth.MakeJWT(user.ID, Cfg.secret, time.Hour)
+	Token, err := auth.MakeJWT(user.ID, models.Cfg.Secret, time.Hour)
 	if err != nil {
 		log.Printf("Error generating JWT for user %q: %v", user.ID, err)
 		http.Error(w, `{"error":"Failed to generate access token"}`, http.StatusInternalServerError)
@@ -280,7 +281,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Token:  refreshToken,
 		UserID: user.ID,
 	}
-	_, err = Cfg.db.NewRefreshToken(r.Context(), params) //Wat gaan hier aan???
+	_, err = models.Cfg.DB.NewRefreshToken(r.Context(), params) //Wat gaan hier aan???
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
 		return
@@ -317,20 +318,20 @@ func login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Revoke the refresh token from a user. Needs token in auth header to authorize
-func revokeRefreshToken(w http.ResponseWriter, r *http.Request) {
+func RevokeRefreshToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusForbidden)
 		return
 	}
-	refreshToken, err := Cfg.db.GetRefreshToken(r.Context(), token)
+	refreshToken, err := models.Cfg.DB.GetRefreshToken(r.Context(), token)
 	if err != nil {
 		log.Printf("Error fetching refresh token: %v", err)
 		http.Error(w, `{"error":"Invalid refresh token"}`, http.StatusForbidden)
 		return
 	}
-	err = Cfg.db.RevokeRefreshToken(r.Context(), refreshToken.Token)
+	err = models.Cfg.DB.RevokeRefreshToken(r.Context(), refreshToken.Token)
 	if err != nil {
 		http.Error(w, `"error":"Could not revoke Refresh Token"`, http.StatusFailedDependency)
 	}

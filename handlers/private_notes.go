@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -7,14 +7,15 @@ import (
 
 	"github.com/F0RG-2142/capstone-1/internal/auth"
 	"github.com/F0RG-2142/capstone-1/internal/database"
+	"github.com/F0RG-2142/capstone-1/models"
 	"github.com/google/uuid"
 )
 
-func updateNote(w http.ResponseWriter, r *http.Request) {
+func UpdateNote(w http.ResponseWriter, r *http.Request) {
 	//loads note from db, replaces old body with new one. Way to optimise?
 	w.Header().Set("Content-Type", "application/json")
 	//Get auth get & validate token ->
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -29,7 +30,7 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 		UserID: userId,
 	}
 
-	note, err := Cfg.db.GetNoteByID(r.Context(), getParams)
+	note, err := models.Cfg.DB.GetNoteByID(r.Context(), getParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusNotFound)
 		return
@@ -57,7 +58,7 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 		ID:   req.NoteID,
 		Body: req.Body,
 	}
-	err = Cfg.db.UpdateNote(r.Context(), updateParams)
+	err = models.Cfg.DB.UpdateNote(r.Context(), updateParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
 		return
@@ -65,10 +66,10 @@ func updateNote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func deleteNote(w http.ResponseWriter, r *http.Request) {
+func DeleteNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//get and validate token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -82,7 +83,7 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 		ID:     id,
 		UserID: userId,
 	}
-	err = Cfg.db.DeleteNote(r.Context(), deleteParams)
+	err = models.Cfg.DB.DeleteNote(r.Context(), deleteParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
 		return
@@ -90,13 +91,13 @@ func deleteNote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func getNote(w http.ResponseWriter, r *http.Request) {
+func GetNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id, err := uuid.Parse(r.URL.Query().Get("noteID"))
 	if err != nil {
 		w.WriteHeader(http.StatusFailedDependency)
 	}
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -105,7 +106,7 @@ func getNote(w http.ResponseWriter, r *http.Request) {
 		ID:     id,
 		UserID: userId,
 	}
-	note, err := Cfg.db.GetNoteByID(r.Context(), params)
+	note, err := models.Cfg.DB.GetNoteByID(r.Context(), params)
 	if err != nil {
 		w.WriteHeader(404)
 		_, err = w.Write([]byte(err.Error()))
@@ -126,7 +127,7 @@ func getNote(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getNotes(w http.ResponseWriter, r *http.Request) {
+func GetNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var notes []database.Note
 	id, err := uuid.Parse(r.URL.Query().Get("authorId"))
@@ -135,7 +136,7 @@ func getNotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if id != uuid.Nil {
-		notes, err = Cfg.db.GetAllNotes(r.Context(), id)
+		notes, err = models.Cfg.DB.GetAllNotes(r.Context(), id)
 		if err != nil {
 			w.WriteHeader(http.StatusBadGateway)
 			return
@@ -153,7 +154,7 @@ func getNotes(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func notes(w http.ResponseWriter, r *http.Request) {
+func Notes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//req struct
 	var req struct {
@@ -168,7 +169,7 @@ func notes(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 	//get bearer token
-	userId, err := auth.GetAndValidateToken(r.Header, Cfg.secret)
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
@@ -181,7 +182,7 @@ func notes(w http.ResponseWriter, r *http.Request) {
 		Body:   req.Body,
 		UserID: req.UserId,
 	}
-	_, err = Cfg.db.NewNote(r.Context(), params)
+	_, err = models.Cfg.DB.NewNote(r.Context(), params)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		http.Error(w, `{"error":"Failed to create note"}`, http.StatusInternalServerError)
