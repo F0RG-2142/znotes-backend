@@ -12,7 +12,6 @@ import (
 	"github.com/F0RG-2142/capstone-1/handlers"
 	"github.com/F0RG-2142/capstone-1/internal/auth"
 	"github.com/F0RG-2142/capstone-1/models"
-	"github.com/a-h/templ"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 
@@ -37,8 +36,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	//Frontend Routes
-	mux.Handle("/", templ.Handler(button("John", "Say Hello")))
-
+	mux.Handle("/", http.HandlerFunc(handlers.LandingPage))
 	//Utility and admin
 	mux.Handle("GET /api/v1/healthz", http.HandlerFunc(readiness))         //Check if server is ready //Done
 	mux.Handle("GET /api/v1/admin/metrics", http.HandlerFunc(metrics))     //Server metrics endpoint //---

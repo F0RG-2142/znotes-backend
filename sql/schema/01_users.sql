@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS Users (
 );
 CREATE TABLE IF NOT EXISTS Notes (
     id UUID PRIMARY KEY,
+    name TEXT NOT NULL DEFAULT 'unset',
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     body TEXT NOT NULL,

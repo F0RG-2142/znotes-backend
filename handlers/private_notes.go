@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/F0RG-2142/capstone-1/components"
 	"github.com/F0RG-2142/capstone-1/internal/auth"
 	"github.com/F0RG-2142/capstone-1/internal/database"
 	"github.com/F0RG-2142/capstone-1/models"
@@ -130,28 +131,22 @@ func GetNote(w http.ResponseWriter, r *http.Request) {
 func GetNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var notes []database.Note
-	id, err := uuid.Parse(r.URL.Query().Get("authorId"))
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
 	if err != nil {
-		http.Error(w, "Could not parse uuid", http.StatusBadRequest)
+		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	if id != uuid.Nil {
-		notes, err = models.Cfg.DB.GetAllNotes(r.Context(), id)
+	if userId != uuid.Nil {
+		notes, err = models.Cfg.DB.GetAllNotes(r.Context(), userId)
 		if err != nil {
 			w.WriteHeader(http.StatusBadGateway)
 			return
 		}
 	}
-	yapsJSON, err := json.Marshal(notes)
-	if err != nil {
-		w.WriteHeader(http.StatusFailedDependency)
-	}
+	component := components.ListNotes(notes)
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(yapsJSON)
-	if err != nil {
-		w.WriteHeader(http.StatusBadGateway)
-		return
-	}
+	component.Render(r.Context(), w)
+
 }
 
 func Notes(w http.ResponseWriter, r *http.Request) {

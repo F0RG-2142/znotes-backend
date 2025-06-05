@@ -191,7 +191,7 @@ func (q *Queries) GetTeamMembers(ctx context.Context, id uuid.UUID) ([]Team, err
 }
 
 const getTeamNote = `-- name: GetTeamNote :one
-SELECT n.id, n.created_at, n.updated_at, n.body, n.user_id
+SELECT n.id, n.name, n.created_at, n.updated_at, n.body, n.user_id
 FROM Notes n
 JOIN Note_Teams nt ON n.id = nt.note_id
 JOIN User_Teams ut ON nt.team_id = ut.team_id
@@ -211,6 +211,7 @@ func (q *Queries) GetTeamNote(ctx context.Context, arg GetTeamNoteParams) (Note,
 	var i Note
 	err := row.Scan(
 		&i.ID,
+		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Body,
@@ -220,7 +221,7 @@ func (q *Queries) GetTeamNote(ctx context.Context, arg GetTeamNoteParams) (Note,
 }
 
 const getTeamNotes = `-- name: GetTeamNotes :many
-SELECT n.id, n.created_at, n.updated_at, n.body, n.user_id
+SELECT n.id, n.name, n.created_at, n.updated_at, n.body, n.user_id
 FROM Notes n
 JOIN Note_Teams nt ON n.id = nt.note_id
 JOIN User_Teams ut ON nt.team_id = ut.team_id
@@ -244,6 +245,7 @@ func (q *Queries) GetTeamNotes(ctx context.Context, arg GetTeamNotesParams) ([]N
 		var i Note
 		if err := rows.Scan(
 			&i.ID,
+			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Body,

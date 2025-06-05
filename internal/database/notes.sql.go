@@ -26,7 +26,7 @@ func (q *Queries) DeleteNote(ctx context.Context, arg DeleteNoteParams) error {
 }
 
 const getAllNotes = `-- name: GetAllNotes :many
-SELECT id, created_at, updated_at, body, user_id FROM notes WHERE user_id = $1 ORDER BY created_at ASC
+SELECT id, name, created_at, updated_at, body, user_id FROM notes WHERE user_id = $1 ORDER BY created_at ASC
 `
 
 func (q *Queries) GetAllNotes(ctx context.Context, userID uuid.UUID) ([]Note, error) {
@@ -40,6 +40,7 @@ func (q *Queries) GetAllNotes(ctx context.Context, userID uuid.UUID) ([]Note, er
 		var i Note
 		if err := rows.Scan(
 			&i.ID,
+			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Body,
@@ -59,7 +60,7 @@ func (q *Queries) GetAllNotes(ctx context.Context, userID uuid.UUID) ([]Note, er
 }
 
 const getNoteByID = `-- name: GetNoteByID :one
-SELECT id, created_at, updated_at, body, user_id FROM notes WHERE id = $1 AND user_id = $2
+SELECT id, name, created_at, updated_at, body, user_id FROM notes WHERE id = $1 AND user_id = $2
 `
 
 type GetNoteByIDParams struct {
@@ -72,6 +73,7 @@ func (q *Queries) GetNoteByID(ctx context.Context, arg GetNoteByIDParams) (Note,
 	var i Note
 	err := row.Scan(
 		&i.ID,
+		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Body,
