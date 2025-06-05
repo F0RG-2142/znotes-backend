@@ -7,7 +7,7 @@ templ LandingPage() {
 	<head>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-		<title>ZNotes - Collaborative Note Sharing (No JS)</title>
+		<title>ZNotes - Collaborative Note Sharing</title>
 		<style type="text/css">
 			:root {
 				--dark-grey: #2D2D2D;
@@ -291,12 +291,12 @@ templ LandingPage() {
 		</style>
 	</head>
 	<body>
-		<div id="pageTop"></div>
+		<div id="page"></div>
 		<header>
 			<div class="logo-small">ZNotes</div>
 			<nav>
-				<a href="#loginModal" class="nav-button">Login</a>
-				<a href="#registerModal" class="nav-button">Register</a>
+				<a href="#login" class="nav-button">Login</a>
+				<a href="#register" class="nav-button">Register</a>
 			</nav>
 		</header>
 
@@ -304,39 +304,47 @@ templ LandingPage() {
 			<h1 class="logo-large">ZNotes</h1>
 		</main>
 
-		<div id="loginModal" class="modal-overlay">
-			<div class="modal-content">
-				<a href="#pageTop" class="close-btn" aria-label="Close login form">&times;</a>
-				<h2>Login to ZNotes</h2>
-				<form> <div class="form-group">
-						<label for="loginEmail">Email Address</label>
-						<input type="email" id="loginEmail" name="loginEmail" required/>
-					</div>
-					<div class="form-group">
-						<label for="loginPassword">Password</label>
-						<input type="password" id="loginPassword" name="loginPassword" required/>
-					</div>
-					<button type="submit" class="form-btn">Login</button>
-				</form>
-			</div>
-		</div>
+		@login()
 
-		<div id="registerModal" class="modal-overlay">
-			<div class="modal-content">
-				<a href="#pageTop" class="close-btn" aria-label="Close registration form">&times;</a>
-				<h2>Create ZNotes Account</h2>
-				<form> <div class="form-group">
-						<label for="registerEmail">Email Address</label>
-						<input type="email" id="registerEmail" name="registerEmail" required/>
-					</div>
-					<div class="form-group">
-						<label for="registerPassword">Password</label>
-						<input type="password" id="registerPassword" name="registerPassword" required/>
-					</div>
-					<button type="submit" class="form-btn">Register</button>
-				</form>
-			</div>
-		</div>
+		@register()
 	</body>
 	</html>
+}
+
+templ login() {
+	<div id="login" class="modal-overlay">
+		<div class="modal-content">
+			<a href="#page" class="close-btn" aria-label="Close login form">&times;</a>
+			<h2>Login to ZNotes</h2>
+			<form> <div class="form-group">
+					<label for="loginEmail">Email Address</label>
+					<input type="email" id="loginEmail" name="loginEmail" required/>
+				</div>
+				<div class="form-group">
+					<label for="loginPassword">Password</label>
+					<input type="password" id="loginPassword" name="loginPassword" required/>
+				</div>
+				<button type="submit" class="form-btn">Login</button>
+			</form>
+		</div>
+	</div>
+}
+
+templ register(){
+	<div id="register" class="modal-overlay">
+		<div class="modal-content">
+			<a href="#page" class="close-btn" aria-label="Close registration form">&times;</a>
+			<h2>Create ZNotes Account</h2>
+			<form> <div class="form-group">
+					<label for="registerEmail">Email Address</label>
+					<input type="email" id="registerEmail" name="registerEmail" required/>
+				</div>
+				<div class="form-group">
+					<label for="registerPassword">Password</label>
+					<input type="password" id="registerPassword" name="registerPassword" required/>
+				</div>
+				<button type="submit" class="form-btn">Register</button>
+			</form>
+		</div>
+	</div>
 }

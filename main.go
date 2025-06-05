@@ -37,6 +37,7 @@ func main() {
 	mux := http.NewServeMux()
 	//Frontend Routes
 	mux.Handle("/", http.HandlerFunc(handlers.LandingPage))
+	//mux.Handle("/app/", http.HandlerFunc(handlers.AppHome))
 	//Utility and admin
 	mux.Handle("GET /api/v1/healthz", http.HandlerFunc(readiness))         //Check if server is ready //Done
 	mux.Handle("GET /api/v1/admin/metrics", http.HandlerFunc(metrics))     //Server metrics endpoint //---
