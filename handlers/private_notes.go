@@ -5,14 +5,13 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/F0RG-2142/capstone-1/components"
 	"github.com/F0RG-2142/capstone-1/internal/auth"
 	"github.com/F0RG-2142/capstone-1/internal/database"
 	"github.com/F0RG-2142/capstone-1/models"
 	"github.com/google/uuid"
 )
 
-func UpdateNote(w http.ResponseWriter, r *http.Request) {
+func HandleUpdateNote(w http.ResponseWriter, r *http.Request) {
 	//loads note from db, replaces old body with new one. Way to optimise?
 	w.Header().Set("Content-Type", "application/json")
 	//Get auth get & validate token ->
@@ -67,7 +66,7 @@ func UpdateNote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func DeleteNote(w http.ResponseWriter, r *http.Request) {
+func HandleDeleteNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//get and validate token
 	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
@@ -92,7 +91,7 @@ func DeleteNote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func GetNote(w http.ResponseWriter, r *http.Request) {
+func HandleGetNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id, err := uuid.Parse(r.URL.Query().Get("noteID"))
 	if err != nil {
@@ -128,7 +127,7 @@ func GetNote(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetNotes(w http.ResponseWriter, r *http.Request) {
+func HandleGetNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var notes []database.Note
 	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
@@ -143,13 +142,21 @@ func GetNotes(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	component := components.ListNotes(notes)
+	notesJSON, err := json.Marshal(notes)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
-	component.Render(r.Context(), w)
+	_, err = w.Write(notesJSON)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 
 }
 
-func Notes(w http.ResponseWriter, r *http.Request) {
+func HandleNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//req struct
 	var req struct {

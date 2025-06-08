@@ -17,7 +17,7 @@ import (
 //		"body":"string"
 //		"user_id":"string"
 //	};
-func TeamNotes(w http.ResponseWriter, r *http.Request) {
+func HandleTeamNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
 	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
@@ -81,7 +81,7 @@ func TeamNotes(w http.ResponseWriter, r *http.Request) {
 //	...
 //
 // }
-func GetTeamNotes(w http.ResponseWriter, r *http.Request) {
+func HandleGetTeamNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
 	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
@@ -126,7 +126,7 @@ func GetTeamNotes(w http.ResponseWriter, r *http.Request) {
 //		"body":"string"
 //		"user_id":"uuid"
 //	}
-func GetTeamNote(w http.ResponseWriter, r *http.Request) {
+func HandleGetTeamNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
 	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
@@ -171,7 +171,7 @@ func GetTeamNote(w http.ResponseWriter, r *http.Request) {
 }
 
 // Deletes the specified note from the team and database
-func DeleteTeamNote(w http.ResponseWriter, r *http.Request) {
+func HandleDeleteTeamNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
 	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
@@ -213,7 +213,7 @@ func DeleteTeamNote(w http.ResponseWriter, r *http.Request) {
 //		"body":"string"
 //		"user_id":"uuid"
 //	}
-func UpdateTeamNote(w http.ResponseWriter, r *http.Request) {
+func HandleUpdateTeamNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
 	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)

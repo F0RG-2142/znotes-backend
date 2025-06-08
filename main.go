@@ -35,39 +35,36 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	//Frontend Routes
-	mux.Handle("/", http.HandlerFunc(handlers.LandingPage))
-	//mux.Handle("/app/", http.HandlerFunc(handlers.AppHome))
 	//Utility and admin
 	mux.Handle("GET /api/v1/healthz", http.HandlerFunc(readiness))         //Check if server is ready //Done
 	mux.Handle("GET /api/v1/admin/metrics", http.HandlerFunc(metrics))     //Server metrics endpoint //---
 	mux.Handle("POST /api/v1/payment/webhooks", http.HandlerFunc(payment)) //Payment platform webhook //---
 	//Users and auth
-	mux.Handle("POST /api/v1/register", http.HandlerFunc(handlers.NewUser))          //New User Registration
-	mux.Handle("POST /api/v1/login", http.HandlerFunc(handlers.Login))               //Login to profile
-	mux.Handle("POST /api/v1/logout", http.HandlerFunc(handlers.RevokeRefreshToken)) //Revoke refresh tok
-	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(handlers.RefreshJWT))  //Refresh JWT
-	mux.Handle("PUT /api/v1/user/me", http.HandlerFunc(handlers.UpdateUser))         //Update user details
+	mux.Handle("POST /api/v1/register", http.HandlerFunc(handlers.HandleNewUser))          //New User Registration
+	mux.Handle("POST /api/v1/login", http.HandlerFunc(handlers.HandleLogin))               //Login to profile
+	mux.Handle("POST /api/v1/logout", http.HandlerFunc(handlers.HandleRevokeRefreshToken)) //Revoke refresh tok
+	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(handlers.HandleRefreshJWT))  //Refresh JWT
+	mux.Handle("PUT /api/v1/user/me", http.HandlerFunc(handlers.HandleUpdateUser))         //Update user details
 	//Private Notes
-	mux.Handle("POST /api/v1/notes", http.HandlerFunc(handlers.Notes))              //Post Private Note //Done
-	mux.Handle("GET /api/v1/notes", http.HandlerFunc(handlers.GetNotes))            //Get all private notes //Done
-	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(handlers.GetNote))    //Get one private note //Done
-	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(handlers.UpdateNote)) //Update private note //Done
-	mux.Handle("DELETE /api/notes/{noteID}", http.HandlerFunc(handlers.DeleteNote)) //Delete note based on id //Done
+	mux.Handle("POST /api/v1/notes", http.HandlerFunc(handlers.HandleNotes))              //Post Private Note //Done
+	mux.Handle("GET /api/v1/notes", http.HandlerFunc(handlers.HandleGetNotes))            //Get all private notes //Done
+	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(handlers.HandleGetNote))    //Get one private note //Done
+	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(handlers.HandleUpdateNote)) //Update private note //Done
+	mux.Handle("DELETE /api/notes/{noteID}", http.HandlerFunc(handlers.HandleDeleteNote)) //Delete note based on id //Done
 	//Teams
-	mux.Handle("POST /api/v1/teams", http.HandlerFunc(handlers.NewTeam))                                          //Create new team
-	mux.Handle("GET /api/v1/teams", http.HandlerFunc(handlers.Teams))                                             //List all teams a user is part of
-	mux.Handle("GET /api/v1/teams/{teamID}", http.HandlerFunc(handlers.Team))                                     //Get specific team details
-	mux.Handle("DELETE /api/v1/teams/{teamID}", http.HandlerFunc(handlers.DeleteTeam))                            //Delete team
-	mux.Handle("POST /api/v1/teams/{teamID}/members", http.HandlerFunc(handlers.AddUserToTeam))                   //Add new user to team
-	mux.Handle("DELETE /api/v1/teams/{teamID}/members/{memberID}", http.HandlerFunc(handlers.RemoveUserFromTeam)) //Remove user from team
-	mux.Handle("GET /api/v1/teams/{teamID}/members", http.HandlerFunc(handlers.GetTeamMembers))                   //Get all users in team
+	mux.Handle("POST /api/v1/teams", http.HandlerFunc(handlers.HandleNewTeam))                                          //Create new team
+	mux.Handle("GET /api/v1/teams", http.HandlerFunc(handlers.HandleGetTeams))                                          //List all teams a user is part of
+	mux.Handle("GET /api/v1/teams/{teamID}", http.HandlerFunc(handlers.HandleGetTeam))                                  //Get specific team details
+	mux.Handle("DELETE /api/v1/teams/{teamID}", http.HandlerFunc(handlers.HandleDeleteTeam))                            //Delete team
+	mux.Handle("POST /api/v1/teams/{teamID}/members", http.HandlerFunc(handlers.HandleAddUserToTeam))                   //Add new user to team
+	mux.Handle("DELETE /api/v1/teams/{teamID}/members/{memberID}", http.HandlerFunc(handlers.HandleRemoveUserFromTeam)) //Remove user from team
+	mux.Handle("GET /api/v1/teams/{teamID}/members", http.HandlerFunc(handlers.HandleGetTeamMembers))                   //Get all users in team
 	//Team Notes
-	mux.Handle("POST /api/v1/teams/{teamID}/notes", http.HandlerFunc(handlers.TeamNotes))                 //Post team Note
-	mux.Handle("GET /api/v1/teams/{teamID}/notes", http.HandlerFunc(handlers.GetTeamNotes))               //Get all team notes
-	mux.Handle("GET /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.GetTeamNote))       //Get one team note
-	mux.Handle("PUT /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.UpdateTeamNote))    //Update team Note
-	mux.Handle("DELETE /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.DeleteTeamNote)) //Delete team note based on id
+	mux.Handle("POST /api/v1/teams/{teamID}/notes", http.HandlerFunc(handlers.HandleTeamNotes))                 //Post team Note
+	mux.Handle("GET /api/v1/teams/{teamID}/notes", http.HandlerFunc(handlers.HandleGetTeamNotes))               //Get all team notes
+	mux.Handle("GET /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.HandleGetTeamNote))       //Get one team note
+	mux.Handle("PUT /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.HandleUpdateTeamNote))    //Update team Note
+	mux.Handle("DELETE /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.HandleDeleteTeamNote)) //Delete team note based on id
 
 	server := &http.Server{Handler: mux, Addr: ":8080", ReadHeaderTimeout: time.Second * 10}
 	fmt.Println("Listening on http://localhost:8080/")

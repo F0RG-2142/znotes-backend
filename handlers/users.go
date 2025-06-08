@@ -28,7 +28,7 @@ import (
 //		"user_email":"string"
 //		"has_notes_premium":"bool"
 //	}
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
+func HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//get and validate auth token
 	user_id, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
@@ -97,7 +97,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 //	{
 //		"token":"string"
 //	}
-func RefreshJWT(w http.ResponseWriter, r *http.Request) {
+func HandleRefreshJWT(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
@@ -166,7 +166,7 @@ func RefreshJWT(w http.ResponseWriter, r *http.Request) {
 //		"user_email":"string"
 //		"has_notes_premium":"bool"
 //	}
-func NewUser(w http.ResponseWriter, r *http.Request) {
+func HandleNewUser(w http.ResponseWriter, r *http.Request) {
 	//decode request body
 	w.Header().Set("Content-Type", "application/json")
 	var req struct {
@@ -245,8 +245,9 @@ func NewUser(w http.ResponseWriter, r *http.Request) {
 //		"refresh_token":"string"
 //		"has_notes_premium":"bool"
 //	}
-func Login(w http.ResponseWriter, r *http.Request) {
+func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Add("HX-Redirect", "/app/")
 	//parse req
 	var req struct {
 		Email    string `json:"email"`
@@ -318,7 +319,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Revoke the refresh token from a user. Needs token in auth header to authorize
-func RevokeRefreshToken(w http.ResponseWriter, r *http.Request) {
+func HandleRevokeRefreshToken(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {

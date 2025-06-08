@@ -18,7 +18,7 @@ import (
 //		"user_id":"uuid",
 //		"is_private":"bool",
 //	}
-func NewTeam(w http.ResponseWriter, r *http.Request) {
+func HandleNewTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//req struct and decoding
 	var req struct {
@@ -60,7 +60,7 @@ func NewTeam(w http.ResponseWriter, r *http.Request) {
 //	   "created_by":"uuid"
 //	   "is_private":"bool"
 //	}
-func Team(w http.ResponseWriter, r *http.Request) {
+func HandleGetTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
 	if err != nil {
@@ -111,7 +111,7 @@ func Team(w http.ResponseWriter, r *http.Request) {
 //
 // ...
 // }
-func Teams(w http.ResponseWriter, r *http.Request) {
+func HandleGetTeams(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var teams []database.Team
 	//Get and validate token
@@ -139,7 +139,7 @@ func Teams(w http.ResponseWriter, r *http.Request) {
 }
 
 // Deletes team from database based on team id given in url
-func DeleteTeam(w http.ResponseWriter, r *http.Request) {
+func HandleDeleteTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
 	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
@@ -171,7 +171,7 @@ func DeleteTeam(w http.ResponseWriter, r *http.Request) {
 //		"user_id":"uuid"
 //		"role":"string"
 //	}
-func AddUserToTeam(w http.ResponseWriter, r *http.Request) {
+func HandleAddUserToTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
 	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
@@ -222,7 +222,7 @@ func AddUserToTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 // Remove a user from the team
-func RemoveUserFromTeam(w http.ResponseWriter, r *http.Request) {
+func HandleRemoveUserFromTeam(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//get team and member id
 	teamId, err := uuid.Parse(r.URL.Query().Get("team_id"))
@@ -269,7 +269,7 @@ func RemoveUserFromTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get all the members of a specified group
-func GetTeamMembers(w http.ResponseWriter, r *http.Request) {
+func HandleGetTeamMembers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//Get and validate token
 	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
