@@ -194,6 +194,13 @@ func HandleNewUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, `{"error":"Failed to hash password"}`, http.StatusFailedDependency)
 	}
+
+	//Check if user exists, returns error if there is no error getting user by email
+	_, err = models.Cfg.DB.GetUserByEmail(r.Context(), req.Email)
+	if err == nil {
+		http.Error(w, `{"error":"This user already exists"}`, http.StatusBadRequest)
+		return
+	}
 	//Create user and resepond with created user
 	params := database.CreateUserParams{
 		Email:          req.Email,
@@ -247,7 +254,6 @@ func HandleNewUser(w http.ResponseWriter, r *http.Request) {
 //	}
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Add("HX-Redirect", "/app/")
 	//parse req
 	var req struct {
 		Email    string `json:"email"`
@@ -267,7 +273,6 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	err = auth.CheckPasswordHash(user.HashedPassword, req.Password)
 	if err != nil {
-
 		http.Error(w, `{"error":"Incorrect username or password"}`, http.StatusBadRequest)
 	}
 	//make jwt

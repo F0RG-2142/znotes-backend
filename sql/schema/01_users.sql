@@ -52,8 +52,8 @@ CREATE INDEX idx_refresh_tokens_user_id ON Refresh_Tokens (user_id);
 
 -- +goose Down
 DROP TABLE users CASCADE;
-DROP TABLE notes;
+DROP TABLE notes CASCADE;
 DROP TABLE refresh_tokens;
-DROP TABLE teams;
+DROP TABLE teams CASCADE;
 DROP TABLE user_teams;
-DROP TABLE Note_teams
+DROP TABLE note_teams;

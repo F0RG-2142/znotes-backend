@@ -7,10 +7,10 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/F0RG-2142/capstone-1/handlers"
 	"github.com/F0RG-2142/capstone-1/internal/auth"
+	"github.com/F0RG-2142/capstone-1/internal/database"
 	"github.com/F0RG-2142/capstone-1/models"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -28,11 +28,16 @@ func main() {
 	models.Cfg.Platform = os.Getenv("PLATFORM")
 	models.Cfg.Secret = os.Getenv("JWT_SECRET")
 
-	db, _ := sql.Open("postgres", dbURL)
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatal("Failed to connect to db:", err)
+	}
 	defer db.Close()
 	if err := db.Ping(); err != nil {
 		log.Fatal("Failed to ping database:", err)
 	}
+	queries := database.New(db)
+	models.Cfg.DB = queries
 
 	mux := http.NewServeMux()
 	//Utility and admin
@@ -66,9 +71,8 @@ func main() {
 	mux.Handle("PUT /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.HandleUpdateTeamNote))    //Update team Note
 	mux.Handle("DELETE /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.HandleDeleteTeamNote)) //Delete team note based on id
 
-	server := &http.Server{Handler: mux, Addr: ":8080", ReadHeaderTimeout: time.Second * 10}
 	fmt.Println("Listening on http://localhost:8080/")
-	if err = server.ListenAndServe(); err != nil {
+	if err = http.ListenAndServe(":8080", corsMiddleware(mux)); err != nil {
 		log.Fatal("Server failed:", err)
 	}
 }
@@ -121,4 +125,20 @@ func payment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User Not Found", http.StatusNotFound)
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Handle preflight requests
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
