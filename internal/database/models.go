@@ -12,12 +12,12 @@ import (
 )
 
 type Note struct {
-	ID        uuid.UUID
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Body      string
-	UserID    uuid.UUID
+	ID        uuid.UUID	`json:"note_id"`
+	Name      string	`json:"note_name"`
+	CreatedAt time.Time	`json:"created_at"`
+	UpdatedAt time.Time	`json:"updated_at"`
+	Body      string	`json:"body"`
+	UserID    uuid.UUID	`json:"user_id"`
 }
 
 type NoteTeam struct {
