@@ -287,8 +287,9 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		Token:  refreshToken,
 		UserID: user.ID,
 	}
-	_, err = models.Cfg.DB.NewRefreshToken(r.Context(), params) //Wat gaan hier aan???
+	usrRefreshToken, err := models.Cfg.DB.NewRefreshToken(r.Context(), params)
 	if err != nil {
+		log.Print(err)
 		w.WriteHeader(http.StatusFailedDependency)
 		return
 	}
@@ -306,7 +307,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:         user.UpdatedAt,
 		Email:             user.Email,
 		Token:             Token,
-		RefreshToken:      refreshToken,
+		RefreshToken:      usrRefreshToken.Token,
 		Has_notes_premium: user.HasNotesPremium,
 	}
 

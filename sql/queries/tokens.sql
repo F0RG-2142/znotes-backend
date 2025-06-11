@@ -5,7 +5,7 @@ VALUES (
     NOW(),
     NOW(),
     $2,
-    NOW() + INTERTVAL '60 days',
+    NOW() + INTERVAL '60 days',
     NULL
 )
 RETURNING *;

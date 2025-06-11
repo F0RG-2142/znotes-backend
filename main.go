@@ -24,11 +24,7 @@ func main() {
 		log.Fatal("Failed to load env:", err)
 		return
 	}
-	dbURL := os.Getenv("DB_URL")
-	models.Cfg.Platform = os.Getenv("PLATFORM")
-	models.Cfg.Secret = os.Getenv("JWT_SECRET")
-
-	db, err := sql.Open("postgres", dbURL)
+	db, err := sql.Open("postgres", os.Getenv("DB_URL"))
 	if err != nil {
 		log.Fatal("Failed to connect to db:", err)
 	}
@@ -38,6 +34,8 @@ func main() {
 	}
 	queries := database.New(db)
 	models.Cfg.DB = queries
+	models.Cfg.Platform = os.Getenv("PLATFORM")
+	models.Cfg.Secret = os.Getenv("JWT_SECRET")
 
 	mux := http.NewServeMux()
 	//Utility and admin
