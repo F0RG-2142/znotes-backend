@@ -160,8 +160,7 @@ func HandleNotes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	//req struct
 	var req struct {
-		Body   string    `json:"body"`
-		UserId uuid.UUID `json:"user_id"`
+		Body string `json:"body"`
 	}
 	//decode req
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -176,13 +175,10 @@ func HandleNotes(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	if userId != req.UserId {
-		w.WriteHeader(http.StatusForbidden)
-	}
 	//save note to db
 	params := database.NewNoteParams{
 		Body:   req.Body,
-		UserID: req.UserId,
+		UserID: userId,
 	}
 	_, err = models.Cfg.DB.NewNote(r.Context(), params)
 	if err != nil {
