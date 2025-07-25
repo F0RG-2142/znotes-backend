@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"path"
+	"strings"
 
 	"github.com/F0RG-2142/capstone-1/internal/auth"
 	"github.com/F0RG-2142/capstone-1/internal/database"
@@ -92,37 +95,58 @@ func HandleDeleteNote(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetNote(w http.ResponseWriter, r *http.Request) {
+	// Set Content-Type header early
 	w.Header().Set("Content-Type", "application/json")
-	id, err := uuid.Parse(r.URL.Query().Get("noteID"))
-	if err != nil {
-		w.WriteHeader(http.StatusFailedDependency)
-	}
-	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
-	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+
+	cleanPath := path.Clean(r.URL.Path)
+
+	parts := strings.Split(cleanPath, "/")
+
+	if len(parts) < 4 {
+		http.Error(w, `{"error": "Malformed note ID path"}`, http.StatusBadRequest)
 		return
 	}
+
+	idStr := parts[3] // Index 3 corresponds to the ID part
+	if idStr == "" {
+		http.Error(w, `{"error": "Missing note ID in path"}`, http.StatusBadRequest)
+		return
+	}
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "Invalid note ID format: %s (%v)"}`, err.Error(), id), http.StatusBadRequest)
+		return
+	}
+
+	userId, err := auth.GetAndValidateToken(r.Header, models.Cfg.Secret)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err.Error()), http.StatusUnauthorized)
+		return
+	}
+
 	params := database.GetNoteByIDParams{
 		ID:     id,
 		UserID: userId,
 	}
 	note, err := models.Cfg.DB.GetNoteByID(r.Context(), params)
 	if err != nil {
-		w.WriteHeader(404)
-		_, err = w.Write([]byte(err.Error()))
-		if err != nil {
-			w.WriteHeader(http.StatusBadGateway)
-			return
-		}
+		log.Printf("Database error fetching note ID %s for user %s: %v", id, userId, err)
+		http.Error(w, `{"error": "Note not found or access denied"}`, http.StatusNotFound)
+		return
 	}
+
 	noteJSON, err := json.Marshal(note)
 	if err != nil {
-		w.WriteHeader(http.StatusFailedDependency)
+		log.Printf("Error marshaling note ID %s to JSON: %v", id, err)
+		http.Error(w, `{"error": "Internal server error while processing note"}`, http.StatusInternalServerError)
+		return
 	}
+
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(noteJSON)
 	if err != nil {
-		w.WriteHeader(http.StatusBadGateway)
+		log.Printf("Error writing note ID %s response: %v", id, err)
 		return
 	}
 }
