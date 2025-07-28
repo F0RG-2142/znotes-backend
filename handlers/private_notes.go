@@ -23,11 +23,25 @@ func HandleUpdateNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	id, err := uuid.Parse(r.URL.Query().Get("noteID")) //loads entire note struct from db
-	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+	cleanPath := path.Clean(r.URL.Path)
+	parts := strings.Split(cleanPath, "/")
+
+	if len(parts) < 4 {
+		http.Error(w, `{"error": "Malformed note ID path"}`, http.StatusBadRequest)
 		return
 	}
+
+	idStr := parts[4] // Index 4 is the ID
+	if idStr == "" {
+		http.Error(w, `{"error": "Missing note ID in path"}`, http.StatusBadRequest)
+		return
+	}
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "Invalid note ID format: %s (%v)"}`, err.Error(), id), http.StatusBadRequest)
+		return
+	}
+
 	getParams := database.GetNoteByIDParams{
 		ID:     id,
 		UserID: userId,
@@ -44,7 +58,7 @@ func HandleUpdateNote(w http.ResponseWriter, r *http.Request) {
 	}
 	//decode req after auth
 	req := struct {
-		NoteID uuid.UUID `json:"noteID"`
+		NoteID uuid.UUID `json:"note_id"`
 		Body   string    `json:"body"`
 	}{
 		NoteID: note.ID,
@@ -99,7 +113,6 @@ func HandleGetNote(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	cleanPath := path.Clean(r.URL.Path)
-
 	parts := strings.Split(cleanPath, "/")
 
 	if len(parts) < 4 {
@@ -107,12 +120,11 @@ func HandleGetNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idStr := parts[3] // Index 3 corresponds to the ID part
+	idStr := parts[4] // Index 4 is the ID
 	if idStr == "" {
 		http.Error(w, `{"error": "Missing note ID in path"}`, http.StatusBadRequest)
 		return
 	}
-
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error": "Invalid note ID format: %s (%v)"}`, err.Error(), id), http.StatusBadRequest)
