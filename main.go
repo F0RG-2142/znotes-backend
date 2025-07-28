@@ -49,11 +49,11 @@ func main() {
 	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(handlers.HandleRefreshJWT))  //Refresh JWT
 	mux.Handle("PUT /api/v1/user/me", http.HandlerFunc(handlers.HandleUpdateUser))         //Update user details
 	//Private Notes
-	mux.Handle("POST /api/v1/notes", http.HandlerFunc(handlers.HandleNotes))              //Post Private Note //Done
-	mux.Handle("GET /api/v1/notes", http.HandlerFunc(handlers.HandleGetNotes))            //Get all private notes //Done
-	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(handlers.HandleGetNote))    //Get one private note //Done
-	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(handlers.HandleUpdateNote)) //Update private note //Done
-	mux.Handle("DELETE /api/notes/{noteID}", http.HandlerFunc(handlers.HandleDeleteNote)) //Delete note based on id //Done
+	mux.Handle("POST /api/v1/notes", http.HandlerFunc(handlers.HandleNotes))                 //Post Private Note //Done
+	mux.Handle("GET /api/v1/notes", http.HandlerFunc(handlers.HandleGetNotes))               //Get all private notes //Done
+	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(handlers.HandleGetNote))       //Get one private note //Done
+	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(handlers.HandleUpdateNote))    //Update private note //Done
+	mux.Handle("DELETE /api/v1/notes/{noteID}", http.HandlerFunc(handlers.HandleDeleteNote)) //Delete note based on id //Done
 	//Teams
 	mux.Handle("POST /api/v1/teams", http.HandlerFunc(handlers.HandleNewTeam))                                          //Create new team
 	mux.Handle("GET /api/v1/teams", http.HandlerFunc(handlers.HandleGetTeams))                                          //List all teams a user is part of

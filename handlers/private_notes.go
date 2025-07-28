@@ -91,9 +91,23 @@ func HandleDeleteNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
 		return
 	}
-	id, err := uuid.Parse(r.URL.Query().Get("noteID"))
+
+	cleanPath := path.Clean(r.URL.Path)
+	parts := strings.Split(cleanPath, "/")
+
+	if len(parts) < 4 {
+		http.Error(w, `{"error": "Malformed note ID path"}`, http.StatusBadRequest)
+		return
+	}
+
+	idStr := parts[4] // Index 4 is the ID
+	if idStr == "" {
+		http.Error(w, `{"error": "Missing note ID in path"}`, http.StatusBadRequest)
+		return
+	}
+	id, err := uuid.Parse(idStr)
 	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf(`{"error": "Invalid note ID format: %s (%v)"}`, err.Error(), id), http.StatusBadRequest)
 		return
 	}
 	deleteParams := database.DeleteNoteParams{
