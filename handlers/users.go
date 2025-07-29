@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -105,6 +106,7 @@ func HandleRefreshJWT(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	refreshToken, err := models.Cfg.DB.GetRefreshToken(r.Context(), token)
+	fmt.Println(token)
 	if err != nil {
 		log.Printf("Error fetching refresh token: %v", err)
 		http.Error(w, `{"error":"Invalid refresh token"}`, http.StatusForbidden)

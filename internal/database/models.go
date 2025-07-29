@@ -12,12 +12,12 @@ import (
 )
 
 type Note struct {
-	ID        uuid.UUID	`json:"note_id"`
-	Name      string	`json:"note_name"`
-	CreatedAt time.Time	`json:"created_at"`
-	UpdatedAt time.Time	`json:"updated_at"`
-	Body      string	`json:"body"`
-	UserID    uuid.UUID	`json:"user_id"`
+	ID        uuid.UUID `json:"note_id"`
+	Name      string    `json:"note_name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Body      string    `json:"note_body"`
+	UserID    uuid.UUID `json:"user_id"`
 }
 
 type NoteTeam struct {
@@ -45,12 +45,12 @@ type Team struct {
 }
 
 type User struct {
-	ID              uuid.UUID
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	Email           string
-	HashedPassword  string
-	HasNotesPremium bool
+	ID              uuid.UUID `json:"user_id"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	Email           string    `json:"email"`
+	HashedPassword  string    `json:"password"`
+	HasNotesPremium bool      `json:"has_premium"`
 }
 
 type UserTeam struct {

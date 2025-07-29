@@ -24,4 +24,4 @@ SET
     updated_at = NOW(),
     body = $1
 WHERE 
-    id = $2 AND user_id = $2;
+    id = $2;
