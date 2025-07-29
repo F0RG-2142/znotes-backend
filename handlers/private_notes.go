@@ -36,6 +36,7 @@ func HandleUpdateNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error": "Missing note ID in path"}`, http.StatusBadRequest)
 		return
 	}
+	fmt.Println(idStr)
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error": "Invalid note ID format: %s (%v)"}`, err.Error(), id), http.StatusBadRequest)
@@ -59,7 +60,7 @@ func HandleUpdateNote(w http.ResponseWriter, r *http.Request) {
 	//decode req after auth
 	req := struct {
 		NoteID uuid.UUID `json:"note_id"`
-		Body   string    `json:"body"`
+		Body   string    `json:"note_body"`
 	}{
 		NoteID: note.ID,
 		Body:   "",
@@ -75,6 +76,7 @@ func HandleUpdateNote(w http.ResponseWriter, r *http.Request) {
 		ID:   req.NoteID,
 		Body: req.Body,
 	}
+	fmt.Println(req.Body)
 	err = models.Cfg.DB.UpdateNote(r.Context(), updateParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
