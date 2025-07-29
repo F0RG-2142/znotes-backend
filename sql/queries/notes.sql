@@ -22,6 +22,7 @@ DELETE FROM notes WHERE id = $1 AND user_id = $2;
 UPDATE notes
 SET 
     updated_at = NOW(),
-    body = $1
+    body = $1,
+    name = $2
 WHERE 
-    id = $2;
+    id = $3;

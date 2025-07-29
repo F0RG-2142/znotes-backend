@@ -110,17 +110,19 @@ const updateNote = `-- name: UpdateNote :exec
 UPDATE notes
 SET 
     updated_at = NOW(),
-    body = $1
+    body = $1,
+    name = $2
 WHERE 
-    id = $2
+    id = $3
 `
 
 type UpdateNoteParams struct {
 	Body string
+	Name string
 	ID   uuid.UUID
 }
 
 func (q *Queries) UpdateNote(ctx context.Context, arg UpdateNoteParams) error {
-	_, err := q.db.ExecContext(ctx, updateNote, arg.Body, arg.ID)
+	_, err := q.db.ExecContext(ctx, updateNote, arg.Body, arg.Name, arg.ID)
 	return err
 }

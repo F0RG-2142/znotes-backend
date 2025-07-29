@@ -36,18 +36,15 @@ func HandleUpdateNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error": "Missing note ID in path"}`, http.StatusBadRequest)
 		return
 	}
-	fmt.Println(idStr)
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error": "Invalid note ID format: %s (%v)"}`, err.Error(), id), http.StatusBadRequest)
 		return
 	}
-
 	getParams := database.GetNoteByIDParams{
 		ID:     id,
 		UserID: userId,
 	}
-
 	note, err := models.Cfg.DB.GetNoteByID(r.Context(), getParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusNotFound)
@@ -61,10 +58,8 @@ func HandleUpdateNote(w http.ResponseWriter, r *http.Request) {
 	req := struct {
 		NoteID uuid.UUID `json:"note_id"`
 		Body   string    `json:"note_body"`
-	}{
-		NoteID: note.ID,
-		Body:   "",
-	}
+		Name   string    `json:"note_name"`
+	}{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Printf("Error decoding request: %v", err)
 		w.WriteHeader(500)
@@ -73,10 +68,10 @@ func HandleUpdateNote(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	updateParams := database.UpdateNoteParams{
-		ID:   req.NoteID,
 		Body: req.Body,
+		Name: req.Name,
+		ID:   note.ID,
 	}
-	fmt.Println(req.Body)
 	err = models.Cfg.DB.UpdateNote(r.Context(), updateParams)
 	if err != nil {
 		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusFailedDependency)
