@@ -21,9 +21,9 @@ type Note struct {
 }
 
 type NoteTeam struct {
-	NoteID   uuid.UUID
-	TeamID   uuid.UUID
-	SharedAt time.Time
+	NoteID   uuid.UUID `json:"note_id"`
+	TeamID   uuid.UUID `json:"team_id"`
+	SharedAt time.Time `json:"shared_at"`
 }
 
 type RefreshToken struct {
@@ -36,12 +36,12 @@ type RefreshToken struct {
 }
 
 type Team struct {
-	ID        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	TeamName  string
-	CreatedBy uuid.UUID
-	IsPrivate bool
+	ID        uuid.UUID `json:"team_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	TeamName  string    `json:"team_name"`
+	CreatedBy uuid.UUID `json:"craeted_by"`
+	IsPrivate bool      `json:"is_private"`
 }
 
 type User struct {
@@ -54,8 +54,8 @@ type User struct {
 }
 
 type UserTeam struct {
-	UserID   uuid.UUID
-	TeamID   uuid.UUID
-	Role     string
-	JoinedAt time.Time
+	UserID   uuid.UUID `json:"user_id"`
+	TeamID   uuid.UUID `json:"team_id"`
+	Role     string    `json:"user_role"`
+	JoinedAt time.Time `json:"joined_at"`
 }

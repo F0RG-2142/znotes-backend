@@ -43,31 +43,31 @@ func main() {
 	mux.Handle("GET /api/v1/admin/metrics", http.HandlerFunc(metrics))     //Server metrics endpoint //---
 	mux.Handle("POST /api/v1/payment/webhooks", http.HandlerFunc(payment)) //Payment platform webhook //---
 	//Users and auth
-	mux.Handle("POST /api/v1/register", http.HandlerFunc(handlers.HandleNewUser))          //New User Registration
-	mux.Handle("POST /api/v1/login", http.HandlerFunc(handlers.HandleLogin))               //Login to profile
-	mux.Handle("POST /api/v1/logout", http.HandlerFunc(handlers.HandleRevokeRefreshToken)) //Revoke refresh tok
-	mux.Handle("POST /api/v1/token/refresh", http.HandlerFunc(handlers.HandleRefreshJWT))  //Refresh JWT
-	mux.Handle("PUT /api/v1/user/me", http.HandlerFunc(handlers.HandleUpdateUser))         //Update user details
+	mux.Handle("POST /api/v1/register", Chain(http.HandlerFunc(handlers.HandleNewUser)))          //New User Registration
+	mux.Handle("POST /api/v1/login", Chain(http.HandlerFunc(handlers.HandleLogin)))               //Login to profile
+	mux.Handle("POST /api/v1/logout", Chain(http.HandlerFunc(handlers.HandleRevokeRefreshToken))) //Revoke refresh tok
+	mux.Handle("POST /api/v1/token/refresh", Chain(http.HandlerFunc(handlers.HandleRefreshJWT)))  //Refresh JWT
+	mux.Handle("PUT /api/v1/user/me", Chain(http.HandlerFunc(handlers.HandleUpdateUser)))         //Update user details
 	//Private Notes
-	mux.Handle("POST /api/v1/notes", http.HandlerFunc(handlers.HandleNotes))                 //Post Private Note //Done
-	mux.Handle("GET /api/v1/notes", http.HandlerFunc(handlers.HandleGetNotes))               //Get all private notes //Done
-	mux.Handle("GET /api/v1/notes/{noteID}", http.HandlerFunc(handlers.HandleGetNote))       //Get one private note //Done
-	mux.Handle("PUT /api/v1/notes/{noteID}", http.HandlerFunc(handlers.HandleUpdateNote))    //Update private note //Done
-	mux.Handle("DELETE /api/v1/notes/{noteID}", http.HandlerFunc(handlers.HandleDeleteNote)) //Delete note based on id //Done
+	mux.Handle("POST /api/v1/notes", Chain(http.HandlerFunc(handlers.HandleNotes)))                 //Post Private Note //Done
+	mux.Handle("GET /api/v1/notes", Chain(http.HandlerFunc(handlers.HandleGetNotes)))               //Get all private notes //Done
+	mux.Handle("GET /api/v1/notes/{noteID}", Chain(http.HandlerFunc(handlers.HandleGetNote)))       //Get one private note //Done
+	mux.Handle("PUT /api/v1/notes/{noteID}", Chain(http.HandlerFunc(handlers.HandleUpdateNote)))    //Update private note //Done
+	mux.Handle("DELETE /api/v1/notes/{noteID}", Chain(http.HandlerFunc(handlers.HandleDeleteNote))) //Delete note based on id //Done
 	//Teams
-	mux.Handle("POST /api/v1/teams", http.HandlerFunc(handlers.HandleNewTeam))                                          //Create new team
-	mux.Handle("GET /api/v1/teams", http.HandlerFunc(handlers.HandleGetTeams))                                          //List all teams a user is part of
-	mux.Handle("GET /api/v1/teams/{teamID}", http.HandlerFunc(handlers.HandleGetTeam))                                  //Get specific team details
-	mux.Handle("DELETE /api/v1/teams/{teamID}", http.HandlerFunc(handlers.HandleDeleteTeam))                            //Delete team
-	mux.Handle("POST /api/v1/teams/{teamID}/members", http.HandlerFunc(handlers.HandleAddUserToTeam))                   //Add new user to team
-	mux.Handle("DELETE /api/v1/teams/{teamID}/members/{memberID}", http.HandlerFunc(handlers.HandleRemoveUserFromTeam)) //Remove user from team
-	mux.Handle("GET /api/v1/teams/{teamID}/members", http.HandlerFunc(handlers.HandleGetTeamMembers))                   //Get all users in team
+	mux.Handle("POST /api/v1/teams", Chain(http.HandlerFunc(handlers.HandleNewTeam)))                                          //Create new team
+	mux.Handle("GET /api/v1/teams", Chain(http.HandlerFunc(handlers.HandleGetTeams)))                                          //List all teams a user is part of
+	mux.Handle("GET /api/v1/teams/{teamID}", Chain(http.HandlerFunc(handlers.HandleGetTeam)))                                  //Get specific team details
+	mux.Handle("DELETE /api/v1/teams/{teamID}", Chain(http.HandlerFunc(handlers.HandleDeleteTeam)))                            //Delete team
+	mux.Handle("POST /api/v1/teams/{teamID}/members", Chain(http.HandlerFunc(handlers.HandleAddUserToTeam)))                   //Add new user to team
+	mux.Handle("DELETE /api/v1/teams/{teamID}/members/{memberID}", Chain(http.HandlerFunc(handlers.HandleRemoveUserFromTeam))) //Remove user from team
+	mux.Handle("GET /api/v1/teams/{teamID}/members", Chain(http.HandlerFunc(handlers.HandleGetTeamMembers)))                   //Get all users in team
 	//Team Notes
-	mux.Handle("POST /api/v1/teams/{teamID}/notes", http.HandlerFunc(handlers.HandleTeamNotes))                 //Post team Note
-	mux.Handle("GET /api/v1/teams/{teamID}/notes", http.HandlerFunc(handlers.HandleGetTeamNotes))               //Get all team notes
-	mux.Handle("GET /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.HandleGetTeamNote))       //Get one team note
-	mux.Handle("PUT /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.HandleUpdateTeamNote))    //Update team Note
-	mux.Handle("DELETE /api/v1/teams/{teamID}/notes/{noteID}", http.HandlerFunc(handlers.HandleDeleteTeamNote)) //Delete team note based on id
+	mux.Handle("POST /api/v1/teams/{teamID}/notes", Chain(http.HandlerFunc(handlers.HandleTeamNotes)))                 //Post team Note
+	mux.Handle("GET /api/v1/teams/{teamID}/notes", Chain(http.HandlerFunc(handlers.HandleGetTeamNotes)))               //Get all team notes
+	mux.Handle("GET /api/v1/teams/{teamID}/notes/{noteID}", Chain(http.HandlerFunc(handlers.HandleGetTeamNote)))       //Get one team note
+	mux.Handle("PUT /api/v1/teams/{teamID}/notes/{noteID}", Chain(http.HandlerFunc(handlers.HandleUpdateTeamNote)))    //Update team Note
+	mux.Handle("DELETE /api/v1/teams/{teamID}/notes/{noteID}", Chain(http.HandlerFunc(handlers.HandleDeleteTeamNote))) //Delete team note based on id
 
 	fmt.Println("Listening on http://localhost:8080/")
 	if err = http.ListenAndServe(":8080", corsMiddleware(mux)); err != nil {
@@ -143,4 +143,11 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func Chain(h http.Handler, middlewares ...models.Middleware) http.Handler {
+	for _, m := range middlewares {
+		h = m(h)
+	}
+	return h
 }
