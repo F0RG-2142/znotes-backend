@@ -130,7 +130,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 
-		// Allow any origin starting with "localhost" (http or https)
 		if strings.HasPrefix(strings.ToLower(origin), "http://localhost") ||
 			strings.HasPrefix(strings.ToLower(origin), "https://localhost") {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
