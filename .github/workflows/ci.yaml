@@ -1,28 +1,100 @@
-name: ci
+name: Build and Release Backend
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    tags:
+      - 'v*'
+
+env:
+  BINARY_NAME: api-server
 
 jobs:
-  tests:
-    name: Tests
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        platform:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            ext: ""
+            suffix: linux-amd64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            ext: ".exe"
+            suffix: windows-amd64
+
+    runs-on: ${{ matrix.platform.os }}
+    outputs:
+      version: ${{ steps.get_version.outputs.VERSION }}
 
     steps:
-      - name: Check out code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.23.0"
-          
-      - name: Unit Tests
-        run: go test ./...  -cover
+          go-version: '1.22'
 
-      - name: Install gosec
-        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+      - name: Get version from tag
+        id: get_version
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-      - name: Gosec Check
-        run: gosec -exclude-generated ./...
+      - name: Build binary
+        run: |
+          CGO_ENABLED=0 GOOS=${{ matrix.platform.goos }} GOARCH=${{ matrix.platform.goarch }} go build \
+            -o ${{ env.BINARY_NAME }}-${{ matrix.platform.suffix }}${{ matrix.platform.ext }} \
+            .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-binaries
+          path: ${{ env.BINARY_NAME }}-${{ matrix.platform.suffix }}${{ matrix.platform.ext }}
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download built binaries
+        uses: actions/download-artifact@v3
+        with:
+          name: backend-binaries
+          path: .
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ needs.build.outputs.version }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Linux binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./api-server-linux-amd64
+          asset_name: api-server-linux-amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./api-server-windows-amd64.exe
+          asset_name: api-server-windows-amd64.exe
+          asset_content_type: application/octet-stream
