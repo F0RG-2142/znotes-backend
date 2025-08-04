@@ -43,6 +43,7 @@ jobs:
           echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Build binary
+        shell: bash
         run: |
           CGO_ENABLED=0 GOOS=${{ matrix.platform.goos }} GOARCH=${{ matrix.platform.goarch }} go build \
             -o ${{ env.BINARY_NAME }}-${{ matrix.platform.suffix }}${{ matrix.platform.ext }} \
