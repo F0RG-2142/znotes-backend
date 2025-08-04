@@ -67,8 +67,12 @@ jobs:
       - name: Download built binaries
         uses: actions/download-artifact@v4
         with:
-          name: backend-binaries
-          path: .
+          path: artifacts
+          pattern: api-server-*
+
+      - name: List downloaded artifacts
+        run: ls -R artifacts
+        shell: bash
 
       - name: Create Release
         id: create_release
@@ -87,7 +91,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./api-server-linux-amd64
+          asset_path: artifacts/api-server-linux-amd64-ubuntu-latest/api-server-linux-amd64
           asset_name: api-server-linux-amd64
           asset_content_type: application/octet-stream
 
@@ -97,6 +101,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./api-server-windows-amd64.exe
+          asset_path: artifacts/api-server-windows-amd64-windows-latest/api-server-windows-amd64.exe
           asset_name: api-server-windows-amd64.exe
           asset_content_type: application/octet-stream
