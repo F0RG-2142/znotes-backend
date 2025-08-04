@@ -132,11 +132,11 @@ This document outlines the "Users and Auth" API endpoints, detailing their purpo
   - **Response Body** (JSON):
     ```json
     {
-      "id": "uuid",
+      "user_id": "uuid",
       "created_at": "timestamp",
       "updated_at": "timestamp",
       "email": "string",
-      "has_notes_premium": false
+      "has_premium": false
     }
     ```
 - **Authentication**: Requires a valid JWT in the `Authorization` header.
@@ -190,10 +190,11 @@ This document outlines the "Notes" API endpoints, detailing their purpose, param
   - **Response Body** (JSON):
     ```json
     {
-      "id": "uuid",
+      "note_id": "uuid",
+      "note_name" : "string",
       "created_at": "timestamp",
       "updated_at": "timestamp",
-      "body": "string",
+      "note_body": "string",
       "user_id": "uuid"
     }
     ```
@@ -213,12 +214,13 @@ This document outlines the "Notes" API endpoints, detailing their purpose, param
     ```json
     [
       {
-        "id": "uuid",
+        "note_id": "uuid",
+        "note_name" : "string",
         "created_at": "timestamp",
         "updated_at": "timestamp",
-        "body": "string",
+        "note_body": "string",
         "user_id": "uuid"
-      },
+    },
       ...
     ]
     ```
