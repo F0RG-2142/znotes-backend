@@ -1,4 +1,4 @@
-# ZNotes
+# ZNotes v0.0.1
 # API Overview
 This API powers a note-taking application, offering endpoints for user authentication, group management, and note management. It uses JSON for data transfer, ensuring a more lightweight and structured communication (compared to XML) between the client and server. Security is managed by  JWT (JSON Web Tokens) and refresh tokens for longer sessions as well as password hashing and user authentication on the tokens for every request (outside of login and registering of course)
 This is just the backend of the app as I am no frontend wizard (yet) and like focussing on the business logic much more as that is where my interest lays.
